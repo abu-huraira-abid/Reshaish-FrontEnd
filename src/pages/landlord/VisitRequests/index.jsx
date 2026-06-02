@@ -1,6 +1,6 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import VisitRequestRow from "./components/VisitRequestRow.jsx";
-import { fetchVisitRequests, updateVisitStatus } from "../../../services/mock/visits.js";
+import { fetchVisitRequests, updateVisitStatus } from "../../../services/api/visits.js";
 import { useApp } from "../../../context/AppContext.jsx";
 
 export default function VisitRequests() {

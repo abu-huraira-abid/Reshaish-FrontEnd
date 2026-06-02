@@ -12,6 +12,7 @@ import Unauthorized from "../pages/common/Unauthorized/index.jsx";
 import NotFound from "../pages/common/NotFound/index.jsx";
 
 import Login from "../pages/auth/Login/index.jsx";
+import AdminLogin from "../pages/auth/AdminLogin/index.jsx";
 import Register from "../pages/auth/Register/index.jsx";
 import Profile from "../pages/auth/Profile/index.jsx";
 
@@ -65,6 +66,10 @@ export default function AppRoutes() {
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
         <Route path="profile" element={<Profile />} />
+      </Route>
+
+      <Route path="/admin/login" element={<AuthLayout />}>
+        <Route index element={<AdminLogin />} />
       </Route>
 
       <Route path="/tenant" element={<ProtectedRoute allow={["tenant"]} />}>
@@ -121,7 +126,7 @@ export default function AppRoutes() {
         </Route>
       </Route>
 
-      <Route path="/admin" element={<ProtectedRoute allow={["admin"]} />}>
+      <Route path="/admin" element={<ProtectedRoute allow={["admin"]} loginPath="/admin/login" />}>
         <Route element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="moderation" element={<AdminModeration />} />

@@ -1,8 +1,8 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import AgreementPreview from "./components/AgreementPreview.jsx";
 import PaymentBreakdown from "./components/PaymentBreakdown.jsx";
 import PaymentForm from "./components/PaymentForm.jsx";
-import { createPayment } from "../../../services/mock/payments.js";
+import { createPayment } from "../../../services/api/payments.js";
 import { useApp } from "../../../context/AppContext.jsx";
 
 export default function AgreementPayment() {

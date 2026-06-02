@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Calendar, CheckCircle2, Clock, MapPin } from "lucide-react";
 import QrDisplay from "./components/QrDisplay.jsx";
-import { fetchVisitRequests, generateQrToken } from "../../../services/mock/visits.js";
+import { fetchVisitRequests, generateQrToken } from "../../../services/api/visits.js";
 
 export default function VisitQR() {
   const [token, setToken] = useState("");

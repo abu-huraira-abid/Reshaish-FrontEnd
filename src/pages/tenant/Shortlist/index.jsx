@@ -1,7 +1,7 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import EmptyState from "../../../components/common/EmptyState.jsx";
 import ShortlistCard from "./components/ShortlistCard.jsx";
-import { listings } from "../../../services/mock/listings.js";
+import { fetchListings } from "../../../services/api/listings.js";
 import { useApp } from "../../../context/AppContext.jsx";
 
 export default function Shortlist() {
@@ -9,7 +9,11 @@ export default function Shortlist() {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
-    setItems(listings.filter((listing) => favorites.includes(listing.id)));
+    fetchListings()
+      .then((listings) =>
+        setItems(listings.filter((listing) => favorites.includes(listing.id)))
+      )
+      .catch(() => setItems([]));
   }, [favorites]);
 
   return (

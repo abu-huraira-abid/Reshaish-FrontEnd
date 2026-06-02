@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Calendar, CheckCircle2, Clock, Download, MapPin, Package, Phone, Star, XCircle } from "lucide-react";
-import { fetchServiceOrders } from "../../../services/mock/marketplace.js";
+import { fetchServiceOrders } from "../../../services/api/marketplace.js";
 import Modal from "../../../components/common/Modal.jsx";
 import { formatCurrency } from "../../../utils/helpers.js";
 

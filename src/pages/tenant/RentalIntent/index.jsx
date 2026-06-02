@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import IntentCard from "./components/IntentCard.jsx";
-import { fetchIntents } from "../../../services/mock/intents.js";
+import { fetchIntents } from "../../../services/api/intents.js";
 
 export default function RentalIntent() {
   const [intents, setIntents] = useState([]);

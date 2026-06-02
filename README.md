@@ -1,7 +1,6 @@
 ﻿# Rehaish – Smart Renting Ecosystem (Frontend)
 
-Frontend (UI-only) for **Rehaish**, a smart renting ecosystem that supports the rental lifecycle: verified listings, visit scheduling, QR-based visit check-in/out, rental intent, agreement & initial payment (mock), key handover, and ongoing rent/bills history.  
-Backend will be added in a later phase.
+Frontend for **Rehaish**, a smart renting ecosystem that supports the rental lifecycle: verified listings, visit scheduling, QR-based visit check-in/out, rental intent, agreement & initial payment, key handover, and ongoing rent/bills history.
 
 ---
 
@@ -11,7 +10,7 @@ Backend will be added in a later phase.
 - **React Router**
 - **Bootstrap 5** (primary UI)  
   _Optional:_ Tailwind can be used if required
-- **Axios** (with a mocked API layer for now)
+- **Axios** with JWT auth, token refresh, and domain API modules
 - **State Management:** React Context (or Redux Toolkit if you switch later)
 
 ---
@@ -31,9 +30,9 @@ Backend will be added in a later phase.
 - Visit status tracking (Requested → Scheduled → Completed)
 - QR token screen + QR scan simulation (token input)
 - Submit rental intent + intent status
-- Agreement preview/download (mock)
-- Initial payment simulation (deposit + rent + charges)
-- Rent & bills payment history (mock)
+- Agreement preview/download
+- Initial payment flow (deposit + rent + charges)
+- Rent & bills payment history
 
 ### Landlord
 - Create property listing (multi-step form)
@@ -42,19 +41,31 @@ Backend will be added in a later phase.
 - Review verification feedback
 - Manage visit requests (approve/decline)
 - Review rental intents (accept/reject)
-- Key handover confirmation (mock)
+- Key handover confirmation
 
 ### Platform Agent
 - Assigned property verifications
 - Verification checklist + photo upload + decision
 - Visit scheduling + escort UI
-- Generate QR token (mock)
+- Generate QR token
 - Support check-in/out simulation
 
 ### Admin
 - Dashboard summary cards
 - Listing moderation (override approve/reject)
 - Monitoring & audit logs UI (table + filters)
+
+## API Setup
+
+Create `.env` from `.env.example` and point it at the Django backend:
+
+```bash
+VITE_API_BASE_URL=http://127.0.0.1:8000/api
+```
+
+The frontend uses `src/services/api/client.js` for a shared Axios instance,
+JWT access-token injection, refresh-token retry on `401`, and normalized API
+errors. Domain API files live in `src/services/api/`.
 
 ---
 
@@ -122,13 +133,18 @@ src/
     AppRoutes.jsx
     ProtectedRoute.jsx
   services/
-    api.js
-    mock/
-      auth.mock.js
-      listings.mock.js
-      visits.mock.js
-      intents.mock.js
-      payments.mock.js
+    api/
+      client.js
+      tokenStorage.js
+      mappers.js
+      auth.js
+      listings.js
+      visits.js
+      intents.js
+      payments.js
+      landlord.js
+      agent.js
+      admin.js
   context/
     AuthContext.jsx
     AppContext.jsx

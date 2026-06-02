@@ -1,6 +1,6 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import ModerationRow from "./components/ModerationRow.jsx";
-import { fetchModerationListings } from "../../../services/mock/admin.js";
+import { fetchModerationListings } from "../../../services/api/admin.js";
 import { useApp } from "../../../context/AppContext.jsx";
 
 export default function Moderation() {

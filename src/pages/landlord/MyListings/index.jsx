@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import PropertyCard from "./components/PropertyCard.jsx";
 import Loading from "../../../components/common/Loading.jsx";
-import { fetchMyListings } from "../../../services/mock/landlord.js";
+import { fetchMyListings } from "../../../services/api/landlord.js";
 
 export default function MyListings() {
   const [listings, setListings] = useState([]);

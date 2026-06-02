@@ -1,10 +1,10 @@
-﻿import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
 const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   const [favorites, setFavorites] = useState([]);
-  const [toasts, setToasts] = useState([]);
 
   const toggleFavorite = (listingId) => {
     setFavorites((prev) =>
@@ -15,20 +15,21 @@ export function AppProvider({ children }) {
   };
 
   const addToast = (message, variant = "primary") => {
-    const id = `t-${Date.now()}`;
-    setToasts((prev) => [...prev, { id, message, variant }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    }, 3000);
-  };
+    const options = {
+      duration: 3500,
+      position: "top-right"
+    };
 
-  const removeToast = (id) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    if (variant === "success") return toast.success(message, options);
+    if (variant === "danger" || variant === "error") {
+      return toast.error(message, options);
+    }
+    return toast(message, options);
   };
 
   const value = useMemo(
-    () => ({ favorites, toggleFavorite, toasts, addToast, removeToast }),
-    [favorites, toasts]
+    () => ({ favorites, toggleFavorite, addToast }),
+    [favorites]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

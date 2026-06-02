@@ -1,6 +1,6 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import VisitAssignmentCard from "./components/VisitAssignmentCard.jsx";
-import { fetchVisitAssignments } from "../../../services/mock/agent.js";
+import { fetchVisitAssignments } from "../../../services/api/agent.js";
 
 export default function VisitScheduling() {
   const [assignments, setAssignments] = useState([]);

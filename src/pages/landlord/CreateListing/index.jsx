@@ -1,6 +1,6 @@
-﻿import React from "react";
+import React from "react";
 import ListingStepForm from "./components/ListingStepForm.jsx";
-import { submitListing } from "../../../services/mock/landlord.js";
+import { submitListing } from "../../../services/api/landlord.js";
 import { useApp } from "../../../context/AppContext.jsx";
 
 export default function CreateListing() {

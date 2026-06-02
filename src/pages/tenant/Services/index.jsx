@@ -5,7 +5,7 @@ import StatsGrid from "./components/StatsGrid.jsx";
 import CategoryList from "./components/CategoryList.jsx";
 import ServiceSearchBar from "./components/ServiceSearchBar.jsx";
 import ServiceCard from "./components/ServiceCard.jsx";
-import { fetchServiceCategories, fetchServices } from "../../../services/mock/marketplace.js";
+import { fetchServiceCategories, fetchServices } from "../../../services/api/marketplace.js";
 
 export default function Services() {
   const [categories, setCategories] = useState([]);

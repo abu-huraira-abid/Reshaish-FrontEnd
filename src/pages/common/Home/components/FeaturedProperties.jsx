@@ -1,12 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Bath, BedDouble, CheckCircle2, Heart, MapPin, Ruler } from "lucide-react";
-import { listings } from "../../../../services/mock/listings.js";
+import { fetchListings } from "../../../../services/api/listings.js";
 import { formatCurrency } from "../../../../utils/helpers.js";
 
 export default function FeaturedProperties() {
-  const featured = listings.slice(0, 4);
+  const [featured, setFeatured] = useState([]);
   const [favorites, setFavorites] = useState(new Set());
+
+  useEffect(() => {
+    fetchListings({ verified: true })
+      .then((data) => setFeatured(data.slice(0, 4)))
+      .catch(() => setFeatured([]));
+  }, []);
 
   const toggleFavorite = (id) => {
     setFavorites((prev) => {

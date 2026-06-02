@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import ConversationList from "./components/ConversationList.jsx";
 import ChatWindow from "./components/ChatWindow.jsx";
-import { fetchConversations, fetchMessagesByConversation } from "../../../services/mock/messages.js";
+import { fetchConversations, fetchMessagesByConversation } from "../../../services/api/messages.js";
 
 export default function Messages() {
   const [conversations, setConversations] = useState([]);

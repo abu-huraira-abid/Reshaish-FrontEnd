@@ -4,7 +4,7 @@ import Loading from "../../../components/common/Loading.jsx";
 import StatCard from "./components/StatCard.jsx";
 import ActivityCard from "./components/ActivityCard.jsx";
 import LandlordPropertyCard from "./components/LandlordPropertyCard.jsx";
-import { fetchLandlordDashboard } from "../../../services/mock/landlordDashboard.js";
+import { fetchLandlordDashboard } from "../../../services/api/landlordDashboard.js";
 
 const statIcons = [Home, Users, FileText, DollarSign];
 

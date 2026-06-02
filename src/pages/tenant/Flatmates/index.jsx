@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import FlatmateFilters from "./components/FlatmateFilters.jsx";
 import FlatmateCard from "./components/FlatmateCard.jsx";
 import Modal from "../../../components/common/Modal.jsx";
-import { fetchFlatmates } from "../../../services/mock/flatmates.js";
+import { fetchFlatmates } from "../../../services/api/flatmates.js";
 
 export default function Flatmates() {
   const [people, setPeople] = useState([]);

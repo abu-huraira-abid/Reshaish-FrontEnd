@@ -6,7 +6,7 @@ import AmenitiesCard from "./components/AmenitiesCard.jsx";
 import LocationCard from "./components/LocationCard.jsx";
 import ContactNotice from "./components/ContactNotice.jsx";
 import RequestVisitCard from "./components/RequestVisitCard.jsx";
-import { fetchListingById } from "../../../services/mock/listings.js";
+import { fetchListingById } from "../../../services/api/listings.js";
 import Loading from "../../../components/common/Loading.jsx";
 
 export default function ListingDetail() {

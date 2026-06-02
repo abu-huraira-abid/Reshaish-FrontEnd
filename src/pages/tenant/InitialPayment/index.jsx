@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "../../../utils/helpers.js";
 import Loading from "../../../components/common/Loading.jsx";
-import { fetchListingById } from "../../../services/mock/listings.js";
+import { fetchListingById } from "../../../services/api/listings.js";
 
 export default function InitialPayment() {
   const { id } = useParams();

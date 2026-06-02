@@ -1,6 +1,6 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import ReportCard from "./components/ReportCard.jsx";
-import { fetchVerificationFeedback } from "../../../services/mock/landlord.js";
+import { fetchVerificationFeedback } from "../../../services/api/landlord.js";
 
 export default function VerificationFeedback() {
   const [reports, setReports] = useState([]);

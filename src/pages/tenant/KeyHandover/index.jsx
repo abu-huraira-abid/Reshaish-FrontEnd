@@ -12,7 +12,7 @@ import {
   Upload,
 } from "lucide-react";
 import Loading from "../../../components/common/Loading.jsx";
-import { fetchListingById } from "../../../services/mock/listings.js";
+import { fetchListingById } from "../../../services/api/listings.js";
 
 export default function KeyHandover() {
   const { id } = useParams();

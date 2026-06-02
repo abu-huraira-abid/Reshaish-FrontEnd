@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Check, MapPin } from "lucide-react";
-import { fetchListingById } from "../../../services/mock/listings.js";
+import { fetchListingById } from "../../../services/api/listings.js";
 import Loading from "../../../components/common/Loading.jsx";
 
 const timeSlots = [

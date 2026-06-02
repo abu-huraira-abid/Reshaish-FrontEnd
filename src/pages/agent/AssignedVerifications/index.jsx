@@ -1,6 +1,6 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import VerificationCard from "./components/VerificationCard.jsx";
-import { fetchAssignedVerifications } from "../../../services/mock/agent.js";
+import { fetchAssignedVerifications } from "../../../services/api/agent.js";
 
 const tabs = ["All", "Pending", "In Progress", "Completed"];
 

@@ -3,7 +3,7 @@ import { SlidersHorizontal } from "lucide-react";
 import FilterBar from "./components/FilterBar.jsx";
 import ListingCard from "./components/ListingCard.jsx";
 import Loading from "../../../components/common/Loading.jsx";
-import { fetchListings } from "../../../services/mock/listings.js";
+import { fetchListings } from "../../../services/api/listings.js";
 
 const PAGE_SIZE = 6;
 

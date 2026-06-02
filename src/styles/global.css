@@ -330,23 +330,6 @@ a {
   box-shadow: var(--rehaish-shadow);
 }
 
-.toast-stack {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  display: grid;
-  gap: 0.75rem;
-  z-index: 2000;
-}
-
-.toast-card {
-  background: #fff;
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-  border-left: 4px solid var(--rehaish-primary);
-  box-shadow: var(--rehaish-shadow);
-}
-
 @media (max-width: 991px) {
   .page-content {
     padding: 2rem 0;

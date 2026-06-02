@@ -10,7 +10,7 @@ import {
   Star
 } from "lucide-react";
 import Modal from "../../../components/common/Modal.jsx";
-import { fetchServiceById } from "../../../services/mock/marketplace.js";
+import { fetchServiceById } from "../../../services/api/marketplace.js";
 import { formatCurrency } from "../../../utils/helpers.js";
 
 export default function ServiceBooking() {

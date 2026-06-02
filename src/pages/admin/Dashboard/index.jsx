@@ -1,6 +1,6 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import StatCard from "./components/StatCard.jsx";
-import { fetchAdminStats } from "../../../services/mock/admin.js";
+import { fetchAdminStats } from "../../../services/api/admin.js";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -17,10 +17,10 @@ export default function Dashboard() {
       </div>
       <div className="row g-3">
         <div className="col-md-4">
-          <StatCard label="Pending Verifications" value={stats?.pendingVerifications || 0} icon="⌁" />
+          <StatCard label="Pending Verifications" value={stats?.pendingVerifications || 0} icon="?" />
         </div>
         <div className="col-md-4">
-          <StatCard label="Active Agreements" value={stats?.activeAgreements || 0} icon="⌂" />
+          <StatCard label="Active Agreements" value={stats?.activeAgreements || 0} icon="�" />
         </div>
         <div className="col-md-4">
           <StatCard label="Payments (This Month)" value={stats?.paymentsThisMonth || 0} icon="PKR" />

@@ -1,7 +1,7 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "../../../components/common/Modal.jsx";
 import IntentRow from "./components/IntentRow.jsx";
-import { fetchIntents, updateIntentStatus } from "../../../services/mock/intents.js";
+import { fetchIntents, updateIntentStatus } from "../../../services/api/intents.js";
 
 const filters = ["all", "pending", "accepted", "rejected"];
 

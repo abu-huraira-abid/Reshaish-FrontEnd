@@ -1,5 +1,5 @@
-﻿import React, { useEffect, useState } from "react";
-import { fetchProfile } from "../../../../services/mock/auth.js";
+import React, { useEffect, useState } from "react";
+import { fetchProfile } from "../../../../services/api/auth.js";
 import Loading from "../../../../components/common/Loading.jsx";
 
 export default function ProfileCard({ userId }) {

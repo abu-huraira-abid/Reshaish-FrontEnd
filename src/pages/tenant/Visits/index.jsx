@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { AlertCircle, Calendar, CheckCircle2, Clock, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Loading from "../../../components/common/Loading.jsx";
-import { fetchVisitRequests } from "../../../services/mock/visits.js";
+import { fetchVisitRequests } from "../../../services/api/visits.js";
 
 const statusConfig = {
   Scheduled: { label: "Scheduled", icon: CheckCircle2, className: "badge-verified" },

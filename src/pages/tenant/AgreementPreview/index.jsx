@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Calendar, Check, DollarSign, Download, FileText, Home, ListChecks } from "lucide-react";
 import Loading from "../../../components/common/Loading.jsx";
-import { fetchListingById } from "../../../services/mock/listings.js";
+import { fetchListingById } from "../../../services/api/listings.js";
 import { formatCurrency } from "../../../utils/helpers.js";
 
 export default function AgreementPreview() {

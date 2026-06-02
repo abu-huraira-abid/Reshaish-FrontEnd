@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Mail, Lock, User, MapPin } from "lucide-react";
-import { registerUser } from "../../../../services/mock/auth.js";
+import { registerUser } from "../../../../services/api/auth.js";
 import Loading from "../../../../components/common/Loading.jsx";
 
 export default function RegisterForm({ onSuccess }) {
@@ -91,7 +91,6 @@ export default function RegisterForm({ onSuccess }) {
         <option value="tenant">Tenant</option>
         <option value="landlord">Landlord</option>
         <option value="agent">Platform Agent</option>
-        <option value="admin">Admin</option>
       </select>
 
       <label className="form-label">City</label>

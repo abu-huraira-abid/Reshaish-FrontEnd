@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Loading from "../../../components/common/Loading.jsx";
-import { fetchAgentDashboard } from "../../../services/mock/agentDashboard.js";
+import { fetchAgentDashboard } from "../../../services/api/agentDashboard.js";
 
 const statIcons = [ClipboardCheck, Clock, AlertCircle, CheckCircle];
 const actionIcons = [ClipboardCheck, Calendar, QrCode, Wrench];

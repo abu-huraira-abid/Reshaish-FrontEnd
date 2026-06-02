@@ -3,7 +3,7 @@ import { CheckCircle2, Home, TrendingUp, Zap } from "lucide-react";
 import SummaryCard from "./components/SummaryCard.jsx";
 import PaymentFilters from "./components/PaymentFilters.jsx";
 import PaymentTable from "./components/PaymentTable.jsx";
-import { fetchPayments, fetchPaymentSummary } from "../../../services/mock/payments.js";
+import { fetchPayments, fetchPaymentSummary } from "../../../services/api/payments.js";
 import { formatCurrency } from "../../../utils/helpers.js";
 
 export default function Payments() {

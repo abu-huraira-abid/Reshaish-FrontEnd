@@ -12,7 +12,7 @@ import {
   Upload,
   User
 } from "lucide-react";
-import { fetchListingById } from "../../../services/mock/listings.js";
+import { fetchListingById } from "../../../services/api/listings.js";
 import Loading from "../../../components/common/Loading.jsx";
 import { formatCurrency } from "../../../utils/helpers.js";
 

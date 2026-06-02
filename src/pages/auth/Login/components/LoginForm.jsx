@@ -1,12 +1,23 @@
 import React, { useState } from "react";
 import { Mail, Lock } from "lucide-react";
-import { loginUser } from "../../../../services/mock/auth.js";
+import { loginUser } from "../../../../services/api/auth.js";
 import Loading from "../../../../components/common/Loading.jsx";
 
-export default function LoginForm({ onSuccess }) {
+const DEFAULT_ROLE_OPTIONS = [
+  { value: "tenant", label: "Tenant" },
+  { value: "landlord", label: "Landlord" },
+  { value: "agent", label: "Platform Agent" }
+];
+
+export default function LoginForm({
+  onSuccess,
+  roleOptions = DEFAULT_ROLE_OPTIONS,
+  defaultRole = roleOptions[0]?.value || "tenant",
+  showRoleSelect = true
+}) {
   const [form, setForm] = useState({
     email: "",
-    role: "tenant",
+    role: defaultRole,
     password: "",
     remember: false
   });
@@ -25,21 +36,16 @@ export default function LoginForm({ onSuccess }) {
       setError("Email and password are required");
       return;
     }
-    if (form.role === "tenant") {
-      onSuccess({
-        id: `u-${Date.now()}`,
-        name: form.email?.split("@")[0] || "Tenant",
-        role: "tenant",
-        email: form.email
-      });
-      return;
-    }
     setLoading(true);
     try {
-      const user = await loginUser(form);
-      onSuccess(user);
+      const session = await loginUser(form);
+      if (session.user.role !== form.role) {
+        setError("This account does not match the selected login type.");
+        return;
+      }
+      onSuccess(session);
     } catch (err) {
-      setError("Login failed. Try again.");
+      setError(err.message || "Login failed. Try again.");
     } finally {
       setLoading(false);
     }
@@ -47,18 +53,23 @@ export default function LoginForm({ onSuccess }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <label className="form-label">Login as</label>
-      <select
-        className="form-select mb-3"
-        name="role"
-        value={form.role}
-        onChange={handleChange}
-      >
-        <option value="tenant">Tenant</option>
-        <option value="landlord">Landlord</option>
-        <option value="agent">Platform Agent</option>
-        <option value="admin">Admin</option>
-      </select>
+      {showRoleSelect && (
+        <>
+          <label className="form-label">Login as</label>
+          <select
+            className="form-select mb-3"
+            name="role"
+            value={form.role}
+            onChange={handleChange}
+          >
+            {roleOptions.map((role) => (
+              <option key={role.value} value={role.value}>
+                {role.label}
+              </option>
+            ))}
+          </select>
+        </>
+      )}
 
       <label className="form-label">Email or Phone</label>
       <div className="input-group mb-3">

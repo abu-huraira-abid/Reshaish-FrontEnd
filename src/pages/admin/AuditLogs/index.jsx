@@ -1,7 +1,7 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import AuditFilters from "./components/AuditFilters.jsx";
 import AuditTable from "./components/AuditTable.jsx";
-import { fetchAuditLogs } from "../../../services/mock/admin.js";
+import { fetchAuditLogs } from "../../../services/api/admin.js";
 
 export default function AuditLogs() {
   const [logs, setLogs] = useState([]);

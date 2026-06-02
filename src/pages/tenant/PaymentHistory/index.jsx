@@ -13,7 +13,7 @@ import {
   Wifi,
   Zap
 } from "lucide-react";
-import { fetchPayments, fetchPaymentSummary } from "../../../services/mock/payments.js";
+import { fetchPayments, fetchPaymentSummary } from "../../../services/api/payments.js";
 import { formatCurrency } from "../../../utils/helpers.js";
 
 export default function PaymentHistory() {
