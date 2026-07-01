@@ -1,28 +1,82 @@
 import React, { useEffect, useState } from "react";
 import { Calendar, CheckCircle2, Clock, MapPin } from "lucide-react";
 import QrDisplay from "./components/QrDisplay.jsx";
-import { fetchVisitRequests, generateQrToken } from "../../../services/api/visits.js";
+import {
+  fetchVisitQrTokens,
+  fetchVisitRequests,
+  generateQrToken
+} from "../../../services/api/visits.js";
 
 export default function VisitQR() {
   const [token, setToken] = useState("");
   const [visit, setVisit] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [emptyMessage, setEmptyMessage] = useState("");
 
   useEffect(() => {
-    fetchVisitRequests().then((data) => {
-      const scheduled = data.find((item) => item.status === "Scheduled") || data[0];
-      setVisit(scheduled);
-    });
-    generateQrToken("v-201").then((data) => setToken(data.token));
+    let mounted = true;
+
+    async function loadVisitQr() {
+      try {
+        const [visits, qrTokens] = await Promise.all([
+          fetchVisitRequests(),
+          fetchVisitQrTokens()
+        ]);
+        if (!mounted) return;
+
+        const scheduled =
+          visits.find((item) => item.status === "Scheduled") ||
+          visits.find((item) => item.status === "Checked In");
+        if (!scheduled) {
+          setEmptyMessage("Your visit QR will appear here after your visit is scheduled.");
+          setVisit(null);
+          return;
+        }
+
+        setVisit(scheduled);
+        const existingToken = qrTokens.find((item) => item.visitId === scheduled.id);
+        const tokenIsActive =
+          existingToken?.token &&
+          !existingToken.used_flag &&
+          new Date(existingToken.expiry_time) > new Date();
+        if (tokenIsActive) {
+          setToken(existingToken.token);
+          return;
+        }
+
+        const qr = await generateQrToken(scheduled.id);
+        if (mounted) {
+          setToken(qr.token);
+        }
+      } catch (error) {
+        if (mounted) {
+          setEmptyMessage(error.message || "Unable to load your visit QR right now.");
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadVisitQr();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  if (!visit) {
+  if (loading || !visit) {
     return (
       <div>
         <div className="section-title">Visit QR</div>
-        <div className="section-subtitle">Loading visit details...</div>
+        <div className="section-subtitle">
+          {loading ? "Loading visit details..." : emptyMessage}
+        </div>
       </div>
     );
   }
+
+  const visitDate = visit.date ? new Date(visit.date) : null;
 
   return (
     <div>
@@ -49,11 +103,13 @@ export default function VisitQR() {
               <Calendar size={14} /> Date
             </div>
             <div className="fw-semibold">
-              {new Date(visit.date).toLocaleDateString("en-PK", {
-                month: "long",
-                day: "numeric",
-                year: "numeric"
-              })}
+              {visitDate
+                ? visitDate.toLocaleDateString("en-PK", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric"
+                  })
+                : "Scheduled"}
             </div>
           </div>
           <div className="col-md-6">

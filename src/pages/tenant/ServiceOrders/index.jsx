@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Calendar, CheckCircle2, Clock, Download, MapPin, Package, Phone, Star, XCircle } from "lucide-react";
 import { fetchServiceOrders } from "../../../services/api/marketplace.js";
+import DataPagination from "../../../components/common/DataPagination.jsx";
 import Modal from "../../../components/common/Modal.jsx";
 import { formatCurrency } from "../../../utils/helpers.js";
 
@@ -17,12 +18,15 @@ export default function ServiceOrders() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     fetchServiceOrders().then(setOrders);
   }, []);
 
   const filtered = filter === "all" ? orders : orders.filter((order) => order.status === filter);
+  const pagedOrders = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const openRating = (order) => {
     setSelectedOrder(order);
@@ -45,7 +49,10 @@ export default function ServiceOrders() {
               key={item}
               className={`payment-pill ${filter === item ? "active" : ""}`}
               type="button"
-              onClick={() => setFilter(item)}
+              onClick={() => {
+                setFilter(item);
+                setPage(1);
+              }}
             >
               {item.charAt(0).toUpperCase() + item.slice(1)}
             </button>
@@ -54,7 +61,7 @@ export default function ServiceOrders() {
       </div>
 
       <div className="d-grid gap-3">
-        {filtered.map((order) => {
+        {pagedOrders.map((order) => {
           const meta = statusMeta[order.status] || statusMeta.pending;
           const StatusIcon = meta.icon;
 
@@ -71,7 +78,7 @@ export default function ServiceOrders() {
                     />
                     <div>
                       <div className="fw-semibold">{order.service}</div>
-                      <div className="text-muted small">{order.provider} · {order.package}</div>
+                      <div className="text-muted small">{order.provider} - {order.package}</div>
                       <div className="text-muted small">Order ID: {order.orderId}</div>
                     </div>
                   </div>
@@ -158,6 +165,18 @@ export default function ServiceOrders() {
           </div>
         )}
       </div>
+
+      {filtered.length > 0 && (
+        <DataPagination
+          itemLabel="orders"
+          page={page}
+          pageSize={pageSize}
+          pageSizeOptions={[5, 10, 20, 50]}
+          totalItems={filtered.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
 
       <Modal
         open={ratingModal}

@@ -12,7 +12,7 @@ export default function MonthlyRentCard() {
           </span>
           <div>
             <div className="fw-semibold">Monthly Rent</div>
-            <div className="text-muted small">Due on 5th of every month</div>
+            <div className="text-muted small">Payable from the 1st of every month</div>
           </div>
         </div>
         <span className="badge-pill badge-danger">Due</span>
@@ -24,7 +24,7 @@ export default function MonthlyRentCard() {
         </div>
         <div className="col-md-6">
           <div className="text-muted small">Due Date</div>
-          <div className="fw-semibold">1/4/2025</div>
+          <div className="fw-semibold">1st of every month</div>
         </div>
         <div className="col-md-6">
           <div className="text-muted small">Amount</div>
@@ -32,7 +32,7 @@ export default function MonthlyRentCard() {
         </div>
         <div className="col-md-6">
           <div className="text-muted small">Days Remaining</div>
-          <div className="fw-semibold">-354 days</div>
+          <div className="fw-semibold">Monthly cycle</div>
         </div>
       </div>
       <div className="d-flex gap-2 mt-3">

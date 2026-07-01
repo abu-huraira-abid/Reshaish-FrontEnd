@@ -3,7 +3,7 @@ import { AlertCircle } from "lucide-react";
 import { formatCurrency } from "../../../../utils/helpers.js";
 
 export default function DueSummaryCard() {
-  const total = 27920;
+  const total = 28420;
   return (
     <div className="card due-card">
       <div className="d-flex align-items-center gap-2 text-white mb-2">

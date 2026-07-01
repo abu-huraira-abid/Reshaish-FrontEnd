@@ -13,16 +13,23 @@ export function mapUser(user = {}) {
     name:
       [user.first_name, user.last_name].filter(Boolean).join(" ") ||
       user.username ||
-      user.email
+      user.email,
+    profilePhoto: user.profile_photo || user.profilePhoto || ""
   };
 }
 
 export function mapListing(item = {}) {
   const propertyType = item.property_type || item.type || "Apartment";
+  const imageRecords = (item.images || []).map((image) =>
+    typeof image === "string" ? { id: image, url: image } : image
+  );
   return {
     ...item,
     id: item.id,
     title: item.title,
+    landlordName: item.owner_name || item.ownerName || item.owner_email || "Landlord",
+    landlordEmail: item.owner_email || item.landlordEmail || "",
+    landlordPhone: item.owner_phone || item.landlordPhone || "",
     city: item.city,
     location: item.location || item.address,
     rent: item.rent,
@@ -30,19 +37,28 @@ export function mapListing(item = {}) {
     type: statusLabel(propertyType),
     portion: item.portion || "Full",
     residentialType: item.residentialType || "Residential",
-    beds: item.beds || 1,
-    baths: item.baths || 1,
-    size: item.size || 0,
+    beds: item.bedrooms || item.beds || 1,
+    baths: item.bathrooms || item.baths || 1,
+    size: item.area_sqft || item.size || 0,
     status: statusLabel(item.status),
+    lockedForEditing: Boolean(item.locked_for_editing || item.lockedForEditing),
     tag: item.tag || statusLabel(propertyType),
     address: item.address,
-    images: item.images?.length ? item.images : [DEFAULT_LISTING_IMAGE],
-    description: item.description
+    imageRecords,
+    images: imageRecords.length
+      ? imageRecords.map((image) => image.url)
+      : [DEFAULT_LISTING_IMAGE],
+    ownershipProofUrl: item.ownership_proof_url || item.ownership_proof || "",
+    description: item.description,
+    amenities: item.amenities || item.facilities || []
   };
 }
 
 export function mapVisit(item = {}) {
   const listing = item.property_detail || item.property || {};
+  const imageRecords = (listing.images || []).map((image) =>
+    typeof image === "string" ? { id: image, url: image } : image
+  );
   return {
     ...item,
     id: item.id,
@@ -51,6 +67,8 @@ export function mapVisit(item = {}) {
     location: listing.address || item.location || "",
     date: item.confirmed_slot?.slice?.(0, 10) || "",
     time: item.confirmed_slot || "",
+    image: imageRecords[0]?.url || DEFAULT_LISTING_IMAGE,
+    images: imageRecords.length ? imageRecords.map((image) => image.url) : [DEFAULT_LISTING_IMAGE],
     status: statusLabel(item.status),
     requestedSlots: item.requested_slots || [],
     confirmedSlot: item.confirmed_slot,
@@ -75,6 +93,7 @@ export function mapPayment(item = {}) {
 }
 
 export function mapServiceOrder(item = {}) {
+  const status = item.status === "requested" ? "pending" : item.status;
   return {
     ...item,
     id: item.id,
@@ -85,6 +104,6 @@ export function mapServiceOrder(item = {}) {
     scheduledTime: item.schedule,
     amount: item.amount,
     bookedOn: item.created_at?.slice?.(0, 10),
-    status: item.status
+    status
   };
 }

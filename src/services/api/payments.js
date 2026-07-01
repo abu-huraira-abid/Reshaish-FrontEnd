@@ -18,6 +18,26 @@ export async function createPayment(payload) {
   return mapPayment(data);
 }
 
+export async function createStripeCheckoutSession(payload) {
+  const { data } = await apiClient.post("/payments/create-checkout-session/", {
+    property: payload.property || payload.propertyId || payload.listingId
+  });
+  return data;
+}
+
+export async function confirmStripeCheckoutSession(sessionId) {
+  const { data } = await apiClient.post(
+    "/payments/confirm-checkout-session/",
+    {
+      session_id: sessionId
+    },
+    {
+      timeout: 60000
+    }
+  );
+  return mapPayment(data);
+}
+
 export async function fetchPaymentSummary() {
   const payments = await fetchPayments();
   const total = payments.reduce((sum, item) => sum + Number(item.amount || 0), 0);

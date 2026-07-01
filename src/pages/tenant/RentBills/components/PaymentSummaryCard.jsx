@@ -3,7 +3,7 @@ import { formatCurrency } from "../../../../utils/helpers.js";
 
 export default function PaymentSummaryCard() {
   const rent = 25000;
-  const bills = 2920;
+  const bills = 3420;
   return (
     <div className="card p-3 payment-summary-card">
       <h6 className="mb-3">Payment Summary</h6>
@@ -12,7 +12,7 @@ export default function PaymentSummaryCard() {
         <span>{formatCurrency(rent)}</span>
       </div>
       <div className="d-flex justify-content-between mb-2">
-        <span className="text-muted">Utility Bills</span>
+        <span className="text-muted">Utility & Other Bills</span>
         <span>{formatCurrency(bills)}</span>
       </div>
       <hr />

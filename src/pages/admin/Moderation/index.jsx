@@ -1,32 +1,41 @@
 import React, { useEffect, useState } from "react";
 import ModerationRow from "./components/ModerationRow.jsx";
+import DataPagination from "../../../components/common/DataPagination.jsx";
 import { fetchModerationListings } from "../../../services/api/admin.js";
-import { useApp } from "../../../context/AppContext.jsx";
 
 export default function Moderation() {
   const [listings, setListings] = useState([]);
-  const { addToast } = useApp();
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     fetchModerationListings().then(setListings);
   }, []);
 
-  const handleAction = (id, status) => {
-    setListings((prev) => prev.map((listing) => (listing.id === id ? { ...listing, status } : listing)));
-    addToast(`Listing ${status}`, "success");
-  };
+  const pagedListings = listings.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div>
       <div className="mb-4">
         <div className="section-title">Listing Moderation</div>
-        <div className="section-subtitle">Override approvals and rejections.</div>
+        <div className="section-subtitle">Monitor listing verification status and agent review progress.</div>
       </div>
       <div className="d-grid gap-3">
-        {listings.map((listing) => (
-          <ModerationRow key={listing.id} listing={listing} onAction={handleAction} />
+        {pagedListings.map((listing) => (
+          <ModerationRow key={listing.id} listing={listing} />
         ))}
       </div>
+      {listings.length > 0 && (
+        <DataPagination
+          itemLabel="listings"
+          page={page}
+          pageSize={pageSize}
+          pageSizeOptions={[5, 10, 20, 50]}
+          totalItems={listings.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import toast from "react-hot-toast";
 import { loginUser } from "../../../../services/api/auth.js";
 import Loading from "../../../../components/common/Loading.jsx";
 
@@ -13,7 +14,8 @@ export default function LoginForm({
   onSuccess,
   roleOptions = DEFAULT_ROLE_OPTIONS,
   defaultRole = roleOptions[0]?.value || "tenant",
-  showRoleSelect = true
+  showRoleSelect = true,
+  onEmailVerificationRequired
 }) {
   const [form, setForm] = useState({
     email: "",
@@ -22,7 +24,7 @@ export default function LoginForm({
     remember: false
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
@@ -31,21 +33,26 @@ export default function LoginForm({
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setError("");
     if (!form.email || !form.password) {
-      setError("Email and password are required");
+      toast.error("Email and password are required.");
       return;
     }
     setLoading(true);
     try {
       const session = await loginUser(form);
       if (session.user.role !== form.role) {
-        setError("This account does not match the selected login type.");
+        toast.error("This account does not match the selected login type.");
         return;
       }
+      toast.success("Signed in successfully.");
       onSuccess(session);
     } catch (err) {
-      setError(err.message || "Login failed. Try again.");
+      if (err.emailVerificationRequired && onEmailVerificationRequired) {
+        toast.error("Please verify your email before logging in.");
+        onEmailVerificationRequired({ email: err.email || form.email, role: form.role });
+        return;
+      }
+      toast.error(err.message || "Login failed. Try again.");
     } finally {
       setLoading(false);
     }
@@ -71,7 +78,7 @@ export default function LoginForm({
         </>
       )}
 
-      <label className="form-label">Email or Phone</label>
+      <label className="form-label">Email</label>
       <div className="input-group mb-3">
         <span className="input-group-text auth-input-icon">
           <Mail size={16} />
@@ -81,7 +88,7 @@ export default function LoginForm({
           name="email"
           value={form.email}
           onChange={handleChange}
-          placeholder="Enter email or phone number"
+          placeholder="Enter your email address"
         />
       </div>
 
@@ -92,12 +99,21 @@ export default function LoginForm({
         </span>
         <input
           className="form-control"
-          type="password"
+          type={showPassword ? "text" : "password"}
           name="password"
           value={form.password}
           onChange={handleChange}
           placeholder="Enter password"
         />
+        <button
+          className="btn btn-light border password-toggle"
+          type="button"
+          onClick={() => setShowPassword((current) => !current)}
+          aria-label={showPassword ? "Hide password" : "Show password"}
+          aria-pressed={showPassword}
+        >
+          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+        </button>
       </div>
 
       <div className="d-flex align-items-center justify-content-between mb-3">
@@ -115,7 +131,6 @@ export default function LoginForm({
         </button>
       </div>
 
-      {error && <div className="alert alert-danger">{error}</div>}
       <button className="btn btn-primary-soft w-100" type="submit" disabled={loading}>
         {loading ? "Signing in..." : "Sign In"}
       </button>

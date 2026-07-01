@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import VisitRequestRow from "./components/VisitRequestRow.jsx";
+import DataPagination from "../../../components/common/DataPagination.jsx";
 import { fetchVisitRequests, updateVisitStatus } from "../../../services/api/visits.js";
 import { useApp } from "../../../context/AppContext.jsx";
 
 export default function VisitRequests() {
   const [visits, setVisits] = useState([]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { addToast } = useApp();
 
   useEffect(() => {
@@ -17,6 +20,8 @@ export default function VisitRequests() {
     addToast(`Visit ${status}`, "success");
   };
 
+  const pagedVisits = visits.slice((page - 1) * pageSize, page * pageSize);
+
   return (
     <div>
       <div className="mb-4">
@@ -24,10 +29,21 @@ export default function VisitRequests() {
         <div className="section-subtitle">Approve or decline tenant visit requests.</div>
       </div>
       <div className="d-grid gap-3">
-        {visits.map((visit) => (
+        {pagedVisits.map((visit) => (
           <VisitRequestRow key={visit.id} visit={visit} onAction={handleAction} />
         ))}
       </div>
+      {visits.length > 0 && (
+        <DataPagination
+          itemLabel="visits"
+          page={page}
+          pageSize={pageSize}
+          pageSizeOptions={[5, 10, 20, 50]}
+          totalItems={visits.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

@@ -4,10 +4,12 @@ import { Calendar, Check, DollarSign, Download, FileText, Home, ListChecks } fro
 import Loading from "../../../components/common/Loading.jsx";
 import { fetchListingById } from "../../../services/api/listings.js";
 import { formatCurrency } from "../../../utils/helpers.js";
+import { useAuth } from "../../../context/AuthContext.jsx";
 
 export default function AgreementPreview() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const listingId = id || "l-100";
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,10 +38,21 @@ export default function AgreementPreview() {
   }
 
   const agreementNumber = "AGR-2024-001234";
-  const agreementDate = "12/22/2024";
+  const agreementDate = new Date().toLocaleDateString("en-PK");
+  const tenantName =
+    user?.name ||
+    [user?.first_name, user?.last_name].filter(Boolean).join(" ") ||
+    user?.email ||
+    "Tenant";
+  const tenantPhone = user?.phone || "Phone not provided";
+  const tenantEmail = user?.email || "Email not provided";
+  const landlordName = listing.landlordName || listing.ownerName || "Landlord";
+  const landlordPhone = listing.landlordPhone || "Phone not provided";
+  const landlordEmail = listing.landlordEmail || "Email not provided";
   const agreementCharges = 2500;
   const maintenanceCharges = 2000;
   const totalInitial = listing.deposit + listing.rent + agreementCharges;
+  const canSignAndPay = user?.role === "tenant";
 
   return (
     <div className="w-75 mx-auto">
@@ -67,7 +80,11 @@ export default function AgreementPreview() {
             <FileText size={16} />
           </span>
           <div>
-            <div className="fw-semibold">Review and sign this agreement to proceed with payment</div>
+            <div className="fw-semibold">
+              {canSignAndPay
+                ? "Review and sign this agreement to proceed with payment"
+                : "Review the accepted rental agreement"}
+            </div>
             <div className="text-muted small">Generated on {agreementDate}</div>
           </div>
         </div>
@@ -85,17 +102,17 @@ export default function AgreementPreview() {
             <div className="col-md-6">
               <div className="agreement-party">
                 <div className="text-muted small">LANDLORD (Lessor)</div>
-                <div className="fw-semibold">Faisal Khan</div>
-                <div className="text-muted small">+92 300 1234567</div>
-                <div className="text-muted small">faisal.khan@email.com</div>
+                <div className="fw-semibold">{landlordName}</div>
+                <div className="text-muted small">{landlordPhone}</div>
+                <div className="text-muted small">{landlordEmail}</div>
               </div>
             </div>
             <div className="col-md-6">
               <div className="agreement-party">
                 <div className="text-muted small">TENANT (Lessee)</div>
-                <div className="fw-semibold">Hassan Ali</div>
-                <div className="text-muted small">+92 300 7654321</div>
-                <div className="text-muted small">hassan.ali@email.com</div>
+                <div className="fw-semibold">{tenantName}</div>
+                <div className="text-muted small">{tenantPhone}</div>
+                <div className="text-muted small">{tenantEmail}</div>
               </div>
             </div>
           </div>
@@ -209,15 +226,15 @@ export default function AgreementPreview() {
               <div className="col-md-6">
                 <div className="agreement-sign">
                   <span className="text-muted small">LANDLORD</span>
-                  <div className="fw-semibold">Faisal Khan</div>
-                  <div className="text-muted small">Date: 12/25/2025</div>
+                  <div className="fw-semibold">{landlordName}</div>
+                  <div className="text-muted small">Date: {agreementDate}</div>
                 </div>
               </div>
               <div className="col-md-6">
                 <div className="agreement-sign">
                   <span className="text-muted small">TENANT</span>
-                  <div className="fw-semibold">Hassan Ali</div>
-                  <div className="text-muted small">Date: 12/25/2025</div>
+                  <div className="fw-semibold">{tenantName}</div>
+                  <div className="text-muted small">Date: {agreementDate}</div>
                 </div>
               </div>
             </div>
@@ -225,32 +242,40 @@ export default function AgreementPreview() {
         </div>
       </div>
 
-      <div className="form-check mt-3 agreement-check">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          id="agree-terms"
-          checked={agreed}
-          onChange={(event) => setAgreed(event.target.checked)}
-        />
-        <label className="form-check-label" htmlFor="agree-terms">
-          I have read and understood all the terms and conditions mentioned in this rental agreement.
-          I agree to abide by all the clauses and acknowledge that this is a legally binding document.
-        </label>
-      </div>
+      {canSignAndPay && (
+        <div className="form-check mt-3 agreement-check">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="agree-terms"
+            checked={agreed}
+            onChange={(event) => setAgreed(event.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="agree-terms">
+            I have read and understood all the terms and conditions mentioned in this rental agreement.
+            I agree to abide by all the clauses and acknowledge that this is a legally binding document.
+          </label>
+        </div>
+      )}
 
       <div className="d-flex gap-3 mt-3">
         <button className="btn btn-light border px-4" onClick={() => navigate(-1)}>
           Back
         </button>
-        <button
-          className="btn btn-primary-soft px-4"
-          disabled={!agreed}
-          onClick={() => setConfirmOpen(true)}
-        >
-          <Check size={16} className="me-2" />
-          Sign Agreement
-        </button>
+        {canSignAndPay ? (
+          <button
+            className="btn btn-primary-soft px-4"
+            disabled={!agreed}
+            onClick={() => setConfirmOpen(true)}
+          >
+            <Check size={16} className="me-2" />
+            Sign Agreement
+          </button>
+        ) : (
+          <div className="card-soft px-3 py-2 text-muted small">
+            Tenant can sign and pay after landlord acceptance.
+          </div>
+        )}
       </div>
 
       {confirmOpen && (

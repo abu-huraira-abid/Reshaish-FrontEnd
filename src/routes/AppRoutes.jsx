@@ -15,6 +15,10 @@ import Login from "../pages/auth/Login/index.jsx";
 import AdminLogin from "../pages/auth/AdminLogin/index.jsx";
 import Register from "../pages/auth/Register/index.jsx";
 import Profile from "../pages/auth/Profile/index.jsx";
+import Onboarding from "../pages/auth/Onboarding/index.jsx";
+import VerifyEmail from "../pages/auth/VerifyEmail/index.jsx";
+import AccountSettings from "../pages/account/Settings/index.jsx";
+import AccountNotifications from "../pages/account/Notifications/index.jsx";
 
 import TenantListings from "../pages/tenant/Listings/index.jsx";
 import TenantListingDetail from "../pages/tenant/ListingDetail/index.jsx";
@@ -32,6 +36,7 @@ import TenantRequestVisit from "../pages/tenant/RequestVisit/index.jsx";
 import TenantSubmitIntent from "../pages/tenant/SubmitRentalIntent/index.jsx";
 import TenantAgreementPreview from "../pages/tenant/AgreementPreview/index.jsx";
 import TenantInitialPayment from "../pages/tenant/InitialPayment/index.jsx";
+import TenantPaymentSuccess from "../pages/tenant/PaymentSuccess/index.jsx";
 import TenantKeyHandover from "../pages/tenant/KeyHandover/index.jsx";
 import TenantServiceBooking from "../pages/tenant/ServiceBooking/index.jsx";
 import TenantServiceOrders from "../pages/tenant/ServiceOrders/index.jsx";
@@ -41,6 +46,7 @@ import TenantMessages from "../pages/tenant/Messages/index.jsx";
 
 import LandlordDashboard from "../pages/landlord/Dashboard/index.jsx";
 import LandlordCreateListing from "../pages/landlord/CreateListing/index.jsx";
+import LandlordListingDetails from "../pages/landlord/ListingDetails/index.jsx";
 import LandlordListings from "../pages/landlord/MyListings/index.jsx";
 import LandlordVerification from "../pages/landlord/VerificationFeedback/index.jsx";
 import LandlordVisitRequests from "../pages/landlord/VisitRequests/index.jsx";
@@ -56,6 +62,8 @@ import AgentQrSupport from "../pages/agent/QrSupport/index.jsx";
 import AdminDashboard from "../pages/admin/Dashboard/index.jsx";
 import AdminModeration from "../pages/admin/Moderation/index.jsx";
 import AdminAudit from "../pages/admin/AuditLogs/index.jsx";
+import AdminOnboardingApprovals from "../pages/admin/OnboardingApprovals/index.jsx";
+import AdminUsers from "../pages/admin/Users/index.jsx";
 
 export default function AppRoutes() {
   return (
@@ -65,6 +73,7 @@ export default function AppRoutes() {
       <Route path="/auth" element={<AuthLayout />}>
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
+        <Route path="verify-email" element={<VerifyEmail />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 
@@ -72,7 +81,11 @@ export default function AppRoutes() {
         <Route index element={<AdminLogin />} />
       </Route>
 
-      <Route path="/tenant" element={<ProtectedRoute allow={["tenant"]} />}>
+      <Route path="/onboarding" element={<ProtectedRoute allow={["tenant", "landlord", "agent"]} />}>
+        <Route index element={<Onboarding />} />
+      </Route>
+
+      <Route path="/tenant" element={<ProtectedRoute allow={["tenant"]} requireOnboarding />}>
         <Route element={<TenantLayout />}>
           <Route index element={<TenantListings />} />
           <Route path="listings" element={<TenantListings />} />
@@ -84,6 +97,7 @@ export default function AppRoutes() {
           <Route path="agreement" element={<TenantAgreementPreview />} />
           <Route path="agreement-preview/:id" element={<TenantAgreementPreview />} />
           <Route path="initial-payment/:id" element={<TenantInitialPayment />} />
+          <Route path="payment-success" element={<TenantPaymentSuccess />} />
           <Route path="key-handover/:id" element={<TenantKeyHandover />} />
           <Route path="rent-bills" element={<TenantRentAndBills />} />
           <Route path="rent-history" element={<TenantRentHistory />} />
@@ -97,25 +111,31 @@ export default function AppRoutes() {
           <Route path="flatmate-matches" element={<TenantFlatmateMatches />} />
           <Route path="messages" element={<TenantMessages />} />
           <Route path="payments" element={<TenantPaymentHistory />} />
+          <Route path="settings" element={<AccountSettings />} />
+          <Route path="notifications" element={<AccountNotifications />} />
           <Route path="request-visit/:id" element={<TenantRequestVisit />} />
           <Route path="submit-intent/:id" element={<TenantSubmitIntent />} />
         </Route>
       </Route>
 
-      <Route path="/landlord" element={<ProtectedRoute allow={["landlord"]} />}>
+      <Route path="/landlord" element={<ProtectedRoute allow={["landlord"]} requireOnboarding />}>
         <Route element={<LandlordLayout />}>
           <Route index element={<LandlordDashboard />} />
           <Route path="dashboard" element={<LandlordDashboard />} />
           <Route path="create" element={<LandlordCreateListing />} />
           <Route path="listings" element={<LandlordListings />} />
+          <Route path="listings/:id" element={<LandlordListingDetails />} />
           <Route path="verification" element={<LandlordVerification />} />
           <Route path="visits" element={<LandlordVisitRequests />} />
           <Route path="intents" element={<LandlordIntents />} />
+          <Route path="agreement-preview/:id" element={<TenantAgreementPreview />} />
+          <Route path="settings" element={<AccountSettings />} />
+          <Route path="notifications" element={<AccountNotifications />} />
           <Route path="key-handover" element={<LandlordKeyHandover />} />
         </Route>
       </Route>
 
-      <Route path="/agent" element={<ProtectedRoute allow={["agent"]} />}>
+      <Route path="/agent" element={<ProtectedRoute allow={["agent"]} requireOnboarding />}>
         <Route element={<AgentLayout />}>
           <Route index element={<AgentDashboard />} />
           <Route path="dashboard" element={<AgentDashboard />} />
@@ -123,14 +143,20 @@ export default function AppRoutes() {
           <Route path="verification-form" element={<AgentVerificationForm />} />
           <Route path="visits" element={<AgentVisitScheduling />} />
           <Route path="qr-support" element={<AgentQrSupport />} />
+          <Route path="settings" element={<AccountSettings />} />
+          <Route path="notifications" element={<AccountNotifications />} />
         </Route>
       </Route>
 
       <Route path="/admin" element={<ProtectedRoute allow={["admin"]} loginPath="/admin/login" />}>
         <Route element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="onboarding" element={<AdminOnboardingApprovals />} />
           <Route path="moderation" element={<AdminModeration />} />
           <Route path="audit" element={<AdminAudit />} />
+          <Route path="settings" element={<AccountSettings />} />
+          <Route path="notifications" element={<AccountNotifications />} />
         </Route>
       </Route>
 

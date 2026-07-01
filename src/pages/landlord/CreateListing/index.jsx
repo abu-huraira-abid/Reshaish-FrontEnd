@@ -7,8 +7,13 @@ export default function CreateListing() {
   const { addToast } = useApp();
 
   const handleSubmit = async (payload) => {
-    await submitListing(payload);
-    addToast("Listing submitted for verification", "success");
+    try {
+      await submitListing(payload);
+      addToast("Listing submitted for verification", "success");
+    } catch (error) {
+      addToast(error.message || "Unable to submit listing.", "danger");
+      throw error;
+    }
   };
 
   return (

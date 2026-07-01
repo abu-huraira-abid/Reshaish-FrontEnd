@@ -12,11 +12,20 @@ export default function Login() {
     navigate(roleHome[logged.role]);
   };
 
+  const handleEmailVerificationRequired = ({ email, role }) => {
+    navigate(
+      `/auth/verify-email?email=${encodeURIComponent(email)}&role=${role || ""}`
+    );
+  };
+
   return (
     <div>
       <h3 className="mb-2">Welcome Back</h3>
       <p className="text-muted mb-4">Sign in to your account to continue</p>
-      <LoginForm onSuccess={handleSuccess} />
+      <LoginForm
+        onSuccess={handleSuccess}
+        onEmailVerificationRequired={handleEmailVerificationRequired}
+      />
       <div className="auth-divider">Or continue with</div>
       <div className="row g-2 mb-3">
         <div className="col-md-6">

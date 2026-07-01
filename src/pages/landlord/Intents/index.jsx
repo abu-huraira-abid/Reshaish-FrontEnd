@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import DataPagination from "../../../components/common/DataPagination.jsx";
 import Modal from "../../../components/common/Modal.jsx";
 import IntentRow from "./components/IntentRow.jsx";
 import { fetchIntents, updateIntentStatus } from "../../../services/api/intents.js";
@@ -9,6 +10,8 @@ export default function Intents() {
   const [intents, setIntents] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
   const [confirmIntent, setConfirmIntent] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     fetchIntents().then(setIntents);
@@ -33,6 +36,7 @@ export default function Intents() {
   const filtered = intents.filter((intent) =>
     activeFilter === "all" ? true : intent.status === activeFilter
   );
+  const pagedIntents = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const counts = {
     all: intents.length,
@@ -53,7 +57,10 @@ export default function Intents() {
             <button
               key={filter}
               className={`pill-tab ${activeFilter === filter ? "active" : ""}`}
-              onClick={() => setActiveFilter(filter)}
+              onClick={() => {
+                setActiveFilter(filter);
+                setPage(1);
+              }}
             >
               {filter.charAt(0).toUpperCase() + filter.slice(1)} ({counts[filter] || 0})
             </button>
@@ -62,10 +69,21 @@ export default function Intents() {
       </div>
 
       <div className="d-grid gap-4">
-        {filtered.map((intent) => (
+        {pagedIntents.map((intent) => (
           <IntentRow key={intent.id} intent={intent} onAccept={handleAccept} onReject={handleReject} />
         ))}
       </div>
+      {filtered.length > 0 && (
+        <DataPagination
+          itemLabel="requests"
+          page={page}
+          pageSize={pageSize}
+          pageSizeOptions={[5, 10, 20, 50]}
+          totalItems={filtered.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
 
       <Modal
         open={Boolean(confirmIntent)}

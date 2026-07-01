@@ -51,6 +51,17 @@ const bills = [
     amount: 999,
     due: "Paid",
     status: "Paid"
+  },
+  {
+    id: "b-5",
+    name: "Other Bill",
+    period: "Monthly",
+    previous: "Fixed monthly charge",
+    current: "Payable from 1st of every month",
+    units: "-",
+    amount: 500,
+    due: "1st of every month",
+    status: "Pending"
   }
 ];
 

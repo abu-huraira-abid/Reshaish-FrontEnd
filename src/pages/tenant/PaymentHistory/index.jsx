@@ -13,6 +13,7 @@ import {
   Wifi,
   Zap
 } from "lucide-react";
+import DataPagination from "../../../components/common/DataPagination.jsx";
 import { fetchPayments, fetchPaymentSummary } from "../../../services/api/payments.js";
 import { formatCurrency } from "../../../utils/helpers.js";
 
@@ -23,6 +24,7 @@ export default function PaymentHistory() {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(null);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     fetchPayments().then(setPayments);
@@ -35,13 +37,8 @@ export default function PaymentHistory() {
     return matchQuery && matchFilter;
   });
 
-  const pageSize = 6;
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const safePage = Math.min(page, totalPages);
-  const startIndex = (safePage - 1) * pageSize;
+  const startIndex = (page - 1) * pageSize;
   const paged = filtered.slice(startIndex, startIndex + pageSize);
-  const showingStart = filtered.length ? startIndex + 1 : 0;
-  const showingEnd = Math.min(startIndex + pageSize, filtered.length);
 
   const getIcon = (item) => {
     const label = item.description.toLowerCase();
@@ -201,32 +198,17 @@ export default function PaymentHistory() {
         </table>
       </div>
 
-      <div className="d-flex justify-content-between align-items-center mt-3">
-        <div className="text-muted small">
-          Showing {showingStart}-{showingEnd} of {filtered.length} transactions
-        </div>
-        <nav>
-          <ul className="pagination mb-0">
-            <li className={`page-item ${safePage === 1 ? "disabled" : ""}`}>
-              <button className="page-link" onClick={() => setPage((p) => Math.max(1, p - 1))}>
-                Previous
-              </button>
-            </li>
-            {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
-              <li key={pageNum} className={`page-item ${safePage === pageNum ? "active" : ""}`}>
-                <button className="page-link" onClick={() => setPage(pageNum)}>
-                  {pageNum}
-                </button>
-              </li>
-            ))}
-            <li className={`page-item ${safePage === totalPages ? "disabled" : ""}`}>
-              <button className="page-link" onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
-                Next
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </div>
+      {filtered.length > 0 && (
+        <DataPagination
+          itemLabel="transactions"
+          page={page}
+          pageSize={pageSize}
+          pageSizeOptions={[5, 10, 20, 50]}
+          totalItems={filtered.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
 
       {selected && (
         <div className="modal-backdrop-custom">

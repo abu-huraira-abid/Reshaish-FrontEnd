@@ -6,9 +6,34 @@ export async function fetchVisitRequests() {
   return data.map(mapVisit);
 }
 
+export async function fetchVisitQrTokens() {
+  const data = unwrapData(await apiClient.get("/visit-qr-tokens/"));
+  return data.map((item) => ({
+    ...item,
+    visitId: item.visit,
+    token: item.token_value
+  }));
+}
+
+export async function createVisitRequest(payload) {
+  const { data } = await apiClient.post("/visit-requests/", {
+    property: payload.property || payload.listingId,
+    requested_slots: payload.requestedSlots || []
+  });
+  return mapVisit(data);
+}
+
 export async function updateVisitStatus(id, status) {
   const { data } = await apiClient.patch(`/visit-requests/${id}/`, {
     status: String(status).toLowerCase().replaceAll(" ", "_")
+  });
+  return mapVisit(data);
+}
+
+export async function scheduleTenantVisit(id, confirmedSlot) {
+  const { data } = await apiClient.patch(`/visit-requests/${id}/`, {
+    confirmed_slot: confirmedSlot,
+    status: "scheduled"
   });
   return mapVisit(data);
 }

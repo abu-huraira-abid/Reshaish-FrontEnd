@@ -12,6 +12,7 @@ const iconByName = (name) => {
   if (name === "Water") return <Droplet size={16} />;
   if (name === "Gas") return <Flame size={16} />;
   if (name === "Internet") return <Wifi size={16} />;
+  if (name === "Other Bill") return <Receipt size={16} />;
   return <Receipt size={16} />;
 };
 

@@ -1,7 +1,12 @@
 import React, { useState } from "react";
-import { Mail, Lock, User, MapPin } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, MapPin, User } from "lucide-react";
+import toast from "react-hot-toast";
 import { registerUser } from "../../../../services/api/auth.js";
 import Loading from "../../../../components/common/Loading.jsx";
+
+const PASSWORD_PATTERN = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+const PASSWORD_MESSAGE =
+  "Password must be at least 8 characters and include one uppercase letter, one number, and one symbol.";
 
 export default function RegisterForm({ onSuccess }) {
   const [form, setForm] = useState({
@@ -12,7 +17,11 @@ export default function RegisterForm({ onSuccess }) {
     city: ""
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const passwordTouched = form.password.length > 0;
+  const isPasswordValid = PASSWORD_PATTERN.test(form.password);
+  const canSubmit =
+    Boolean(form.name && form.email && form.password) && isPasswordValid && !loading;
 
   const handleChange = (event) => {
     setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }));
@@ -20,17 +29,21 @@ export default function RegisterForm({ onSuccess }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setError("");
     if (!form.name || !form.email || !form.password) {
-      setError("Full name, email, and password are required.");
+      toast.error("Full name, email, and password are required.");
+      return;
+    }
+    if (!PASSWORD_PATTERN.test(form.password)) {
+      toast.error(PASSWORD_MESSAGE);
       return;
     }
     setLoading(true);
     try {
       const user = await registerUser(form);
+      toast.success("Account created. Check your email for the OTP.");
       onSuccess(user);
     } catch (err) {
-      setError("Unable to register. Try again.");
+      toast.error(err.message || "Unable to register. Try again.");
     } finally {
       setLoading(false);
     }
@@ -52,7 +65,7 @@ export default function RegisterForm({ onSuccess }) {
         />
       </div>
 
-      <label className="form-label">Email or Phone</label>
+      <label className="form-label">Email</label>
       <div className="input-group mb-3">
         <span className="input-group-text auth-input-icon">
           <Mail size={16} />
@@ -62,7 +75,7 @@ export default function RegisterForm({ onSuccess }) {
           name="email"
           value={form.email}
           onChange={handleChange}
-          placeholder="Enter email or phone number"
+          placeholder="Enter your email address"
         />
       </div>
 
@@ -73,12 +86,31 @@ export default function RegisterForm({ onSuccess }) {
         </span>
         <input
           className="form-control"
-          type="password"
+          type={showPassword ? "text" : "password"}
           name="password"
           value={form.password}
           onChange={handleChange}
           placeholder="Create a password"
+          aria-invalid={passwordTouched && !isPasswordValid}
         />
+        <button
+          className="btn btn-light border password-toggle"
+          type="button"
+          onClick={() => setShowPassword((current) => !current)}
+          aria-label={showPassword ? "Hide password" : "Show password"}
+          aria-pressed={showPassword}
+        >
+          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+        </button>
+      </div>
+      <div
+        className={`password-requirements mb-3 ${
+          passwordTouched && !isPasswordValid ? "text-danger" : ""
+        }`}
+      >
+        {passwordTouched && !isPasswordValid
+          ? PASSWORD_MESSAGE
+          : "Use 8+ characters with uppercase, number, and symbol."}
       </div>
 
       <label className="form-label">Login as</label>
@@ -107,8 +139,7 @@ export default function RegisterForm({ onSuccess }) {
         />
       </div>
 
-      {error && <div className="alert alert-danger">{error}</div>}
-      <button className="btn btn-primary-soft w-100" type="submit" disabled={loading}>
+      <button className="btn btn-primary-soft w-100" type="submit" disabled={!canSubmit}>
         {loading ? "Creating account..." : "Sign Up"}
       </button>
       {loading && <div className="mt-3"><Loading label="Setting up profile" /></div>}

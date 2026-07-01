@@ -3,6 +3,7 @@ import { CheckCircle2, Home, TrendingUp, Zap } from "lucide-react";
 import SummaryCard from "./components/SummaryCard.jsx";
 import PaymentFilters from "./components/PaymentFilters.jsx";
 import PaymentTable from "./components/PaymentTable.jsx";
+import DataPagination from "../../../components/common/DataPagination.jsx";
 import { fetchPayments, fetchPaymentSummary } from "../../../services/api/payments.js";
 import { formatCurrency } from "../../../utils/helpers.js";
 
@@ -11,6 +12,8 @@ export default function Payments() {
   const [summary, setSummary] = useState({ total: 0, rentTotal: 0, billTotal: 0 });
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     fetchPayments().then(setPayments);
@@ -22,6 +25,17 @@ export default function Payments() {
     const matchFilter = activeFilter === "All" || item.type === activeFilter;
     return matchQuery && matchFilter;
   });
+  const pagedPayments = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  const handleQueryChange = (value) => {
+    setQuery(value);
+    setPage(1);
+  };
+
+  const handleFilterChange = (value) => {
+    setActiveFilter(value);
+    setPage(1);
+  };
 
   return (
     <div>
@@ -58,20 +72,24 @@ export default function Payments() {
       </div>
       <PaymentFilters
         query={query}
-        onQueryChange={setQuery}
+        onQueryChange={handleQueryChange}
         active={activeFilter}
-        onFilterChange={setActiveFilter}
+        onFilterChange={handleFilterChange}
       />
       <div className="mt-3">
-        <PaymentTable items={filtered} />
+        <PaymentTable items={pagedPayments} />
       </div>
-      <div className="d-flex justify-content-between align-items-center mt-3">
-        <div className="text-muted small">Showing 1-{filtered.length} of {filtered.length} transactions</div>
-        <div className="d-flex gap-2">
-          <button className="btn btn-light border btn-sm">Previous</button>
-          <button className="btn btn-primary-soft btn-sm">Next</button>
-        </div>
-      </div>
+      {filtered.length > 0 && (
+        <DataPagination
+          itemLabel="transactions"
+          page={page}
+          pageSize={pageSize}
+          pageSizeOptions={[5, 10, 20, 50]}
+          totalItems={filtered.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

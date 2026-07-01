@@ -10,7 +10,10 @@ import {
   Star
 } from "lucide-react";
 import Modal from "../../../components/common/Modal.jsx";
-import { fetchServiceById } from "../../../services/api/marketplace.js";
+import {
+  createServiceOrder,
+  fetchServiceById
+} from "../../../services/api/marketplace.js";
 import { formatCurrency } from "../../../utils/helpers.js";
 
 export default function ServiceBooking() {
@@ -21,10 +24,11 @@ export default function ServiceBooking() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [booking, setBooking] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const lookupId = id?.startsWith("s-") ? id : `s-${id}`;
-    fetchServiceById(lookupId).then(setService);
+    fetchServiceById(id).then(setService);
   }, [id]);
 
   const packages = useMemo(
@@ -109,6 +113,41 @@ export default function ServiceBooking() {
     "Same Day Service Available",
     "Furniture Assembly/Disassembly"
   ];
+
+  const getSchedule = () => {
+    const [startTime] = selectedTime.split(" - ");
+    const [time, period] = startTime.split(" ");
+    const [hourValue, minuteValue] = time.split(":").map(Number);
+    const hour =
+      period === "PM" && hourValue !== 12
+        ? hourValue + 12
+        : period === "AM" && hourValue === 12
+          ? 0
+          : hourValue;
+    return new Date(
+      `${selectedDate}T${String(hour).padStart(2, "0")}:${String(minuteValue).padStart(2, "0")}:00`
+    ).toISOString();
+  };
+
+  const handleConfirmBooking = async () => {
+    setError("");
+    setBooking(true);
+    try {
+      await createServiceOrder({
+        serviceType: service.id,
+        vendorName: service.vendor,
+        schedule: getSchedule(),
+        amount: totalAmount,
+        notes: `${selectedPackageData.name} package`
+      });
+      setConfirmOpen(false);
+      navigate("/tenant/service-orders");
+    } catch (err) {
+      setError(err.message || "Unable to book service.");
+    } finally {
+      setBooking(false);
+    }
+  };
 
   return (
     <div>
@@ -333,12 +372,10 @@ export default function ServiceBooking() {
             </button>
             <button
               className="btn btn-primary-soft"
-              onClick={() => {
-                setConfirmOpen(false);
-                navigate("/tenant/service-orders");
-              }}
+              onClick={handleConfirmBooking}
+              disabled={booking}
             >
-              Confirm & Pay
+              {booking ? "Confirming..." : "Confirm & Pay"}
             </button>
           </>
         }
@@ -346,6 +383,7 @@ export default function ServiceBooking() {
         <div className="text-muted small">
           You are booking {service.title} on {selectedDate || ""} at {selectedTime || ""}.
         </div>
+        {error && <div className="alert alert-danger mt-3 mb-0">{error}</div>}
       </Modal>
     </div>
   );

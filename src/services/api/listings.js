@@ -22,6 +22,7 @@ export async function fetchListings(filters = {}) {
 
   const data = unwrapData(await apiClient.get("/properties/", { params }));
   return data
+    .filter((item) => item.status === "verified")
     .map(mapListing)
     .filter((item) => !filters.minRent || item.rent >= Number(filters.minRent))
     .filter((item) => !filters.maxRent || item.rent <= Number(filters.maxRent))

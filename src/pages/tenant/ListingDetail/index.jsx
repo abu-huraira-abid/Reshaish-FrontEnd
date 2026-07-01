@@ -7,14 +7,55 @@ import LocationCard from "./components/LocationCard.jsx";
 import ContactNotice from "./components/ContactNotice.jsx";
 import RequestVisitCard from "./components/RequestVisitCard.jsx";
 import { fetchListingById } from "../../../services/api/listings.js";
+import { apiClient, unwrapData } from "../../../services/api/client.js";
 import Loading from "../../../components/common/Loading.jsx";
 
 export default function ListingDetail() {
   const { id } = useParams();
   const [listing, setListing] = useState(null);
+  const [activeTenancy, setActiveTenancy] = useState(null);
+  const [inProcessAgreement, setInProcessAgreement] = useState(null);
 
   useEffect(() => {
-    fetchListingById(id).then(setListing);
+    let mounted = true;
+
+    const loadDetail = async () => {
+      const [listingData, tenancyData, agreementData] = await Promise.all([
+        fetchListingById(id),
+        apiClient
+          .get("/rental-tenancies/")
+          .then(unwrapData)
+          .catch(() => []),
+        apiClient
+          .get("/agreements/")
+          .then(unwrapData)
+          .catch(() => [])
+      ]);
+
+      if (!mounted) return;
+
+      setListing(listingData);
+      setActiveTenancy(
+        tenancyData.find(
+          (tenancy) =>
+            String(tenancy.property) === String(id) &&
+            ["active", "notice_given"].includes(tenancy.status)
+        ) || null
+      );
+      setInProcessAgreement(
+        agreementData.find(
+          (agreement) =>
+            String(agreement.property) === String(id) &&
+            ["pending_acceptance", "payment_pending"].includes(agreement.status)
+        ) || null
+      );
+    };
+
+    loadDetail();
+
+    return () => {
+      mounted = false;
+    };
   }, [id]);
 
   if (!listing) return <Loading label="Loading listing" />;
@@ -34,7 +75,11 @@ export default function ListingDetail() {
           <ContactNotice />
         </div>
         <div className="col-lg-4">
-          <RequestVisitCard listingId={listing.id} />
+          <RequestVisitCard
+            activeTenancy={activeTenancy}
+            inProcessAgreement={inProcessAgreement}
+            listingId={listing.id}
+          />
         </div>
       </div>
     </div>

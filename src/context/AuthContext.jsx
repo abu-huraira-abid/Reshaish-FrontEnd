@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 import {
-  clearAuthTokens,
+  clearStoredSession,
   getStoredUser,
   setStoredUser
 } from "../services/api/tokenStorage.js";
+import { logoutUser } from "../services/api/auth.js";
 
 const AuthContext = createContext(null);
 
@@ -33,9 +34,21 @@ export function AuthProvider({ children }) {
     return newUser;
   };
 
-  const logout = () => {
-    clearAuthTokens();
-    setUser(null);
+  const logout = async () => {
+    try {
+      await logoutUser();
+    } catch {
+      // The local session should end even if the server logout request fails.
+    } finally {
+      clearStoredSession();
+      setUser(null);
+    }
+  };
+
+  const updateUser = (nextUser) => {
+    setUser(nextUser);
+    setStoredUser(nextUser);
+    return nextUser;
   };
 
   const value = useMemo(
@@ -43,6 +56,7 @@ export function AuthProvider({ children }) {
       user,
       login,
       logout,
+      updateUser,
       roleHome: ROLE_HOME
     }),
     [user]

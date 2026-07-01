@@ -1,18 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Briefcase,
   Calendar,
   Check,
-  DollarSign,
-  FileText,
-  Home,
-  MapPin,
-  Phone,
-  Upload,
-  User
+  MapPin
 } from "lucide-react";
 import { fetchListingById } from "../../../services/api/listings.js";
+import { submitIntent } from "../../../services/api/intents.js";
 import Loading from "../../../components/common/Loading.jsx";
 import { formatCurrency } from "../../../utils/helpers.js";
 
@@ -20,6 +14,12 @@ export default function SubmitRentalIntent() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
+  const [form, setForm] = useState({
+    moveIn: "",
+    duration: "12",
+    notes: ""
+  });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchListingById(id).then(setListing);
@@ -29,9 +29,26 @@ export default function SubmitRentalIntent() {
 
   const total = listing.deposit + listing.rent + 2500;
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    navigate(`/tenant/agreement-preview/${id || listing.id}`);
+    setSubmitting(true);
+    try {
+      await submitIntent({
+        listingId: id || listing.id,
+        terms: {
+          move_in: form.moveIn,
+          lease_duration: `${form.duration} months`,
+          notes: form.notes,
+          rent: listing.rent,
+          deposit: listing.deposit,
+          property_title: listing.title,
+          agreement_charges: 2500
+        }
+      });
+      navigate("/tenant/intent");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -83,13 +100,25 @@ export default function SubmitRentalIntent() {
             <label className="form-label d-flex align-items-center gap-2">
               <Calendar size={14} /> Preferred Move-in Date *
             </label>
-            <input type="date" className="form-control" min={new Date().toISOString().split("T")[0]} required />
+            <input
+              type="date"
+              className="form-control"
+              min={new Date().toISOString().split("T")[0]}
+              required
+              value={form.moveIn}
+              onChange={(event) => setForm((prev) => ({ ...prev, moveIn: event.target.value }))}
+            />
           </div>
           <div className="col-md-6">
             <label className="form-label d-flex align-items-center gap-2">
               <Calendar size={14} /> Lease Duration (months) *
             </label>
-            <select className="form-select" required defaultValue="12">
+            <select
+              className="form-select"
+              required
+              value={form.duration}
+              onChange={(event) => setForm((prev) => ({ ...prev, duration: event.target.value }))}
+            >
               <option value="3">3 months</option>
               <option value="6">6 months</option>
               <option value="12">12 months</option>
@@ -98,62 +127,14 @@ export default function SubmitRentalIntent() {
             </select>
           </div>
 
-          <div className="col-md-6">
-            <label className="form-label d-flex align-items-center gap-2">
-              <Briefcase size={14} /> Current Occupation *
-            </label>
-            <input className="form-control" placeholder="e.g., Software Engineer" required />
-          </div>
-          <div className="col-md-6">
-            <label className="form-label d-flex align-items-center gap-2">
-              <DollarSign size={14} /> Monthly Income (PKR) *
-            </label>
-            <input className="form-control" type="number" placeholder="75000" required />
-          </div>
-
-          <div className="col-12">
-            <label className="form-label d-flex align-items-center gap-2">
-              <Home size={14} /> Current Address *
-            </label>
-            <textarea
-              className="form-control"
-              rows={3}
-              placeholder="Enter your current residential address"
-              required
-            />
-          </div>
-
-          <div className="col-md-6">
-            <label className="form-label d-flex align-items-center gap-2">
-              <User size={14} /> Emergency Contact Name *
-            </label>
-            <input className="form-control" placeholder="Full name" required />
-          </div>
-          <div className="col-md-6">
-            <label className="form-label d-flex align-items-center gap-2">
-              <Phone size={14} /> Emergency Contact Phone *
-            </label>
-            <input className="form-control" placeholder="+92 300 0000000" required />
-          </div>
-
-          <div className="col-12">
-            <label className="form-label d-flex align-items-center gap-2">
-              <FileText size={14} /> Supporting Documents
-            </label>
-            <label className="upload-card">
-              <Upload size={22} />
-              <div className="fw-semibold mt-2">Upload ID Proof, Salary Slips, Bank Statement</div>
-              <div className="text-muted small">PDF, JPG, PNG (Max 5MB each)</div>
-              <input type="file" className="d-none" multiple accept=".pdf,.jpg,.jpeg,.png" />
-            </label>
-          </div>
-
           <div className="col-12">
             <label className="form-label">Additional Notes (Optional)</label>
             <textarea
               className="form-control"
               rows={4}
               placeholder="Any additional information you'd like to share with the landlord"
+              value={form.notes}
+              onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))}
             />
           </div>
         </div>
@@ -190,9 +171,18 @@ export default function SubmitRentalIntent() {
           <button type="button" className="btn btn-light border w-25" onClick={() => navigate(-1)}>
             Cancel
           </button>
-          <button type="submit" className="btn btn-primary-soft w-25">
-            <Check size={16} className="me-2" />
-            Submit Rental Intent
+          <button type="submit" className="btn btn-primary-soft w-25" disabled={submitting}>
+            {submitting ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" />
+                Submitting...
+              </>
+            ) : (
+              <>
+                <Check size={16} className="me-2" />
+                Submit Rental Intent
+              </>
+            )}
           </button>
         </div>
       </form>

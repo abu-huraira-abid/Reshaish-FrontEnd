@@ -1,15 +1,14 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import RegisterForm from "./components/RegisterForm.jsx";
-import { useAuth } from "../../../context/AuthContext.jsx";
 
 export default function Register() {
   const navigate = useNavigate();
-  const { login, roleHome } = useAuth();
 
   const handleSuccess = (session) => {
-    const logged = login(session);
-    navigate(roleHome[logged.role]);
+    navigate(
+      `/auth/verify-email?email=${encodeURIComponent(session.email)}&role=${session.role}`
+    );
   };
 
   return (

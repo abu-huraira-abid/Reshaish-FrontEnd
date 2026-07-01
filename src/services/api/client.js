@@ -47,7 +47,9 @@ apiClient.interceptors.response.use(
       originalRequest.headers.Authorization = `Bearer ${data.access}`;
       return apiClient(originalRequest);
     } catch (refreshError) {
-      clearAuthTokens();
+      if ([401, 403].includes(refreshError.response?.status)) {
+        clearAuthTokens();
+      }
       return Promise.reject(normalizeApiError(refreshError));
     } finally {
       refreshRequest = null;
@@ -61,8 +63,22 @@ export function unwrapData(response) {
 }
 
 export function normalizeApiError(error) {
+  const data = error.response?.data;
+  const fieldMessages =
+    data && typeof data === "object" && !Array.isArray(data)
+      ? Object.entries(data)
+          .filter(([key]) => !["detail", "message"].includes(key))
+          .flatMap(([key, value]) => {
+            const label = key
+              .replaceAll("_", " ")
+              .replace(/^\w/, (letter) => letter.toUpperCase());
+            const messages = Array.isArray(value) ? value : [value];
+            return messages.map((message) => `${label}: ${message}`);
+          })
+      : [];
   const detail = error.response?.data?.detail;
   const message =
+    fieldMessages.join(" ") ||
     detail ||
     error.response?.data?.message ||
     error.message ||

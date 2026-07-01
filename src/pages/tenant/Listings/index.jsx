@@ -2,10 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import FilterBar from "./components/FilterBar.jsx";
 import ListingCard from "./components/ListingCard.jsx";
+import DataPagination from "../../../components/common/DataPagination.jsx";
 import Loading from "../../../components/common/Loading.jsx";
 import { fetchListings } from "../../../services/api/listings.js";
-
-const PAGE_SIZE = 6;
 
 export default function Listings() {
   const [filters, setFilters] = useState({
@@ -26,6 +25,7 @@ export default function Listings() {
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(6);
 
   const load = async (nextFilters = filters) => {
     setLoading(true);
@@ -99,8 +99,7 @@ export default function Listings() {
     return sorted;
   }, [listings, filters.sort]);
 
-  const totalPages = Math.max(1, Math.ceil(sortedListings.length / PAGE_SIZE));
-  const pagedListings = sortedListings.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const pagedListings = sortedListings.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div>
@@ -279,36 +278,17 @@ export default function Listings() {
         )}
       </div>
 
-      <div className="d-flex justify-content-center mt-4">
-        <nav>
-          <ul className="pagination">
-            <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
-              <button className="page-link" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
-                Previous
-              </button>
-            </li>
-            {Array.from({ length: totalPages }).map((_, index) => {
-              const pageNum = index + 1;
-              return (
-                <li className={`page-item ${pageNum === page ? "active" : ""}`} key={pageNum}>
-                  <button className="page-link" onClick={() => setPage(pageNum)}>
-                    {pageNum}
-                  </button>
-                </li>
-              );
-            })}
-            <li className={`page-item ${page === totalPages ? "disabled" : ""}`}>
-              <button
-                className="page-link"
-                disabled={page === totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              >
-                Next
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </div>
+      {!loading && sortedListings.length > 0 && (
+        <DataPagination
+          itemLabel="properties"
+          page={page}
+          pageSize={pageSize}
+          pageSizeOptions={[6, 12, 24, 48]}
+          totalItems={sortedListings.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Check, MapPin } from "lucide-react";
 import { fetchListingById } from "../../../services/api/listings.js";
+import { createVisitRequest } from "../../../services/api/visits.js";
 import Loading from "../../../components/common/Loading.jsx";
 
 const timeSlots = [
@@ -20,6 +21,8 @@ export default function RequestVisit() {
   const [listing, setListing] = useState(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetchListingById(id).then(setListing);
@@ -27,9 +30,35 @@ export default function RequestVisit() {
 
   if (!listing) return <Loading label="Loading property" />;
 
-  const handleSubmit = (event) => {
+  const getRequestedSlot = () => {
+    const [time, period] = selectedTime.split(" ");
+    const [hourValue, minuteValue] = time.split(":").map(Number);
+    const hour =
+      period === "PM" && hourValue !== 12
+        ? hourValue + 12
+        : period === "AM" && hourValue === 12
+          ? 0
+          : hourValue;
+    return new Date(
+      `${selectedDate}T${String(hour).padStart(2, "0")}:${String(minuteValue).padStart(2, "0")}:00`
+    ).toISOString();
+  };
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    navigate("/tenant/visits");
+    setError("");
+    setSubmitting(true);
+    try {
+      await createVisitRequest({
+        listingId: listing.id,
+        requestedSlots: [getRequestedSlot()]
+      });
+      navigate("/tenant/visits");
+    } catch (err) {
+      setError(err.message || "Unable to request visit.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -79,11 +108,6 @@ export default function RequestVisit() {
           </div>
 
           <div>
-            <label className="form-label">Contact Number</label>
-            <input className="form-control" placeholder="Enter your mobile number" required />
-          </div>
-
-          <div>
             <label className="form-label">Special Instructions (Optional)</label>
             <textarea
               className="form-control"
@@ -92,9 +116,15 @@ export default function RequestVisit() {
             />
           </div>
 
-          <button className="btn btn-primary-soft w-50 mx-auto" type="submit" disabled={!selectedDate || !selectedTime}>
+          {error && <div className="alert alert-danger">{error}</div>}
+
+          <button
+            className="btn btn-primary-soft w-50 mx-auto"
+            type="submit"
+            disabled={!selectedDate || !selectedTime || submitting}
+          >
             <Check size={16} className="me-2" />
-            Confirm Visit Request
+            {submitting ? "Sending Request..." : "Confirm Visit Request"}
           </button>
         </form>
       </div>

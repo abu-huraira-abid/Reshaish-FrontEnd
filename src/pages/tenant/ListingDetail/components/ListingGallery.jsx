@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 const fallbackImages = [
   "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200&auto=format&fit=crop",
@@ -8,30 +8,35 @@ const fallbackImages = [
 
 export default function ListingGallery({ listing }) {
   const images = listing.images && listing.images.length ? listing.images : fallbackImages;
-  const gallery = [images[0] || fallbackImages[0], images[1] || fallbackImages[1], images[2] || fallbackImages[2]];
+  const [activeImage, setActiveImage] = useState(images[0] || fallbackImages[0]);
+
+  useEffect(() => {
+    setActiveImage(images[0] || fallbackImages[0]);
+  }, [images]);
 
   return (
-    <div className="row g-3">
-      <div className="col-md-8">
+    <div className="listing-gallery">
+      <div className="listing-gallery-main">
         <img
-          src={gallery[0]}
+          src={activeImage}
           alt={listing.title}
-          className="w-100 rounded-4"
-          style={{ height: "320px", objectFit: "cover" }}
         />
       </div>
-      <div className="col-md-4">
-        <div className="d-grid gap-3">
-          {gallery.slice(1).map((image, index) => (
+
+      <div className="listing-gallery-thumbs" aria-label="Property photos">
+        {images.map((image, index) => (
+          <button
+            className={`listing-gallery-thumb ${activeImage === image ? "active" : ""}`}
+            key={`${image}-${index}`}
+            onClick={() => setActiveImage(image)}
+            type="button"
+          >
             <img
-              key={index}
               src={image}
-              alt={`${listing.title} ${index + 2}`}
-              className="w-100 rounded-4"
-              style={{ height: "150px", objectFit: "cover" }}
+              alt={`${listing.title} photo ${index + 1}`}
             />
-          ))}
-        </div>
+          </button>
+        ))}
       </div>
     </div>
   );

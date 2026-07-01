@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   Calendar,
@@ -14,22 +14,30 @@ import {
   Droplet
 } from "lucide-react";
 import { formatCurrency } from "../../../utils/helpers.js";
+import Loading from "../../../components/common/Loading.jsx";
+import { apiClient, unwrapData } from "../../../services/api/client.js";
 
-const currentProperty = {
-  title: "Luxury 2BHK in Gulberg",
-  location: "Gulberg III, Lahore",
-  monthlyRent: 25000,
-  dueDate: 5,
-  image:
-    "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200&auto=format&fit=crop"
-};
+const fallbackPropertyImage =
+  "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200&auto=format&fit=crop";
 
-const rentPayment = {
-  month: "January 2025",
-  amount: 25000,
-  dueDate: "2025-01-05",
-  status: "due"
-};
+const today = new Date();
+const currentMonthDate = new Date(today.getFullYear(), today.getMonth(), 1);
+const nextBillDate = new Date(
+  today.getFullYear(),
+  today.getDate() > 1 ? today.getMonth() + 1 : today.getMonth(),
+  1
+);
+const formatDisplayDate = (date) =>
+  date.toLocaleDateString("en-PK", {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric"
+  });
+const formatPeriod = (date) =>
+  date.toLocaleDateString("en-PK", {
+    month: "long",
+    year: "numeric"
+  });
 
 const utilityBills = [
   {
@@ -37,47 +45,57 @@ const utilityBills = [
     type: "Electricity",
     icon: Zap,
     amount: 1850,
-    dueDate: "2025-01-09",
+    dueDate: formatDisplayDate(nextBillDate),
     status: "pending",
     units: 245,
     previousReading: 12450,
     currentReading: 12695,
-    billPeriod: "Dec 2024"
+    billPeriod: formatPeriod(currentMonthDate)
   },
   {
     id: "b-2",
     type: "Water",
     icon: Droplet,
     amount: 450,
-    dueDate: "2025-01-07",
+    dueDate: formatDisplayDate(nextBillDate),
     status: "pending",
     units: 15,
     previousReading: 380,
     currentReading: 395,
-    billPeriod: "Dec 2024"
+    billPeriod: formatPeriod(currentMonthDate)
   },
   {
     id: "b-3",
     type: "Gas",
     icon: Flame,
     amount: 620,
-    dueDate: "2025-01-11",
+    dueDate: formatDisplayDate(nextBillDate),
     status: "pending",
     units: 28,
     previousReading: 2140,
     currentReading: 2168,
-    billPeriod: "Dec 2024"
+    billPeriod: formatPeriod(currentMonthDate)
   },
   {
     id: "b-4",
     type: "Internet",
     icon: Wifi,
     amount: 999,
-    dueDate: "2025-01-01",
+    dueDate: formatDisplayDate(nextBillDate),
     status: "paid",
     plan: "Fiber 100 Mbps",
-    billPeriod: "Dec 2024",
-    paidOn: "2024-12-28"
+    billPeriod: formatPeriod(currentMonthDate),
+    paidOn: formatDisplayDate(currentMonthDate)
+  },
+  {
+    id: "b-5",
+    type: "Other Bill",
+    icon: Receipt,
+    amount: 500,
+    dueDate: formatDisplayDate(nextBillDate),
+    status: "pending",
+    plan: "Monthly platform and maintenance charges",
+    billPeriod: formatPeriod(currentMonthDate)
   }
 ];
 
@@ -88,11 +106,43 @@ const statusConfig = {
 };
 
 export default function RentAndBills() {
+  const [tenancies, setTenancies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const activeTenancy = useMemo(
+    () =>
+      tenancies.find((item) => ["active", "notice_given"].includes(item.status)) ||
+      null,
+    [tenancies]
+  );
+  const rentPayment = useMemo(
+    () => ({
+      month: formatPeriod(currentMonthDate),
+      amount: Number(activeTenancy?.rent_amount || 0),
+      dueDate: nextBillDate,
+      status: activeTenancy ? "due" : "paid"
+    }),
+    [activeTenancy]
+  );
+
+  useEffect(() => {
+    setLoading(true);
+    apiClient
+      .get("/rental-tenancies/")
+      .then(unwrapData)
+      .then(setTenancies)
+      .finally(() => setLoading(false));
+  }, []);
+
   const utilityTotal = utilityBills
     .filter((bill) => bill.status === "pending")
     .reduce((sum, bill) => sum + bill.amount, 0);
   const totalDue = rentPayment.amount + utilityTotal;
-  const daysRemaining = "-354 days";
+  const daysUntilDue = Math.max(
+    0,
+    Math.ceil((nextBillDate - today) / (1000 * 60 * 60 * 24))
+  );
+  const daysRemaining =
+    daysUntilDue === 0 ? "Due today" : `${daysUntilDue} day${daysUntilDue === 1 ? "" : "s"}`;
 
   const renderStatus = (status) => {
     const config = statusConfig[status];
@@ -105,6 +155,25 @@ export default function RentAndBills() {
     );
   };
 
+  if (loading) {
+    return <Loading label="Loading rent and bills" />;
+  }
+
+  if (!activeTenancy) {
+    return (
+      <div>
+        <div className="mb-4">
+          <div className="section-title">Rent & Bills</div>
+          <div className="section-subtitle">Manage your monthly rent and utility payments</div>
+        </div>
+        <div className="card p-4 text-muted">
+          No active rented property found. Once your payment and key handover are complete,
+          your monthly rent and bills will appear here.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="mb-4">
@@ -115,18 +184,20 @@ export default function RentAndBills() {
       <div className="card p-4 mb-4">
         <div className="d-flex align-items-center gap-3">
           <img
-            src={currentProperty.image}
-            alt={currentProperty.title}
+            src={activeTenancy.property_image || fallbackPropertyImage}
+            alt={activeTenancy.property_title}
             className="rounded-4"
             style={{ width: "80px", height: "80px", objectFit: "cover" }}
           />
           <div className="flex-grow-1">
-            <div className="fw-semibold">{currentProperty.title}</div>
-            <div className="text-muted small">{currentProperty.location}</div>
+            <div className="fw-semibold">{activeTenancy.property_title}</div>
+            <div className="text-muted small">
+              {activeTenancy.property_address}, {activeTenancy.property_city}
+            </div>
           </div>
           <div className="text-end">
             <div className="text-muted small">Monthly Rent</div>
-            <div className="fw-semibold">{formatCurrency(currentProperty.monthlyRent)}</div>
+            <div className="fw-semibold">{formatCurrency(activeTenancy.rent_amount)}</div>
           </div>
         </div>
       </div>
@@ -150,7 +221,7 @@ export default function RentAndBills() {
                 <span>{formatCurrency(rentPayment.amount)}</span>
               </div>
               <div className="d-flex justify-content-between text-muted small">
-                <span>Utility Bills</span>
+                <span>Utility & Other Bills</span>
                 <span>{formatCurrency(utilityTotal)}</span>
               </div>
               <div className="d-flex justify-content-between fw-semibold mt-2">
@@ -185,7 +256,7 @@ export default function RentAndBills() {
                     </div>
                     <div>
                       <div className="fw-semibold">Monthly Rent</div>
-                      <div className="text-muted small">Due on {currentProperty.dueDate}th of every month</div>
+                      <div className="text-muted small">Payable from the 1st of every month</div>
                     </div>
                   </div>
                   {renderStatus(rentPayment.status)}
@@ -199,7 +270,7 @@ export default function RentAndBills() {
                   </div>
                   <div className="col-md-6">
                     <div className="text-muted small">Due Date</div>
-                    <div className="fw-semibold">1/5/2025</div>
+                    <div className="fw-semibold">{formatDisplayDate(rentPayment.dueDate)}</div>
                   </div>
                   <div className="col-md-6">
                     <div className="text-muted small">Amount</div>
@@ -225,7 +296,7 @@ export default function RentAndBills() {
             <div className="card overflow-hidden">
               <div className="utility-header p-4">
                 <div className="fw-semibold">Utility Bills</div>
-                <div className="text-muted small">Pay your monthly utility bills</div>
+                <div className="text-muted small">Utility bills plus fixed PKR 500 other bill, payable from the 1st of every month</div>
               </div>
               <div className="p-4 d-grid gap-3">
                 {utilityBills.map((bill) => {

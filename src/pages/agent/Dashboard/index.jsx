@@ -31,6 +31,32 @@ export default function AgentDashboard() {
     return <Loading label="Loading dashboard" />;
   }
 
+  const stats = Array.isArray(dashboard.stats) ? dashboard.stats : [];
+  const quickActions = Array.isArray(dashboard.quickActions)
+    ? dashboard.quickActions
+    : [];
+  const recentVerifications = Array.isArray(dashboard.recentVerifications)
+    ? dashboard.recentVerifications
+    : [];
+  const upcomingVisits = Array.isArray(dashboard.upcomingVisits)
+    ? dashboard.upcomingVisits
+    : [];
+  const performance = Array.isArray(dashboard.performance)
+    ? dashboard.performance
+    : [];
+
+  const openVerificationStep = (item) => {
+    if (item.canStartVerification) {
+      navigate(`/agent/verification-form?property=${item.listingId}`);
+      return;
+    }
+    if (item.needsQrConfirmation) {
+      navigate("/agent/qr-support");
+      return;
+    }
+    navigate("/agent/visits");
+  };
+
   return (
     <div>
       <div className="mb-4">
@@ -39,7 +65,7 @@ export default function AgentDashboard() {
       </div>
 
       <div className="row g-3 mb-4">
-        {dashboard.stats.map((stat, index) => {
+        {stats.map((stat, index) => {
           const Icon = statIcons[index] || ClipboardCheck;
           return (
             <div className="col-12 col-md-6 col-lg-3" key={stat.label}>
@@ -61,7 +87,7 @@ export default function AgentDashboard() {
       <div className="mb-4">
         <div className="fw-semibold mb-3">Quick Actions</div>
         <div className="row g-3">
-          {dashboard.quickActions.map((action, index) => {
+          {quickActions.map((action, index) => {
             const Icon = actionIcons[index] || ClipboardCheck;
             return (
               <div className="col-12 col-md-6 col-lg-3" key={action.title}>
@@ -96,35 +122,39 @@ export default function AgentDashboard() {
               </button>
             </div>
             <div className="d-grid gap-3">
-              {dashboard.recentVerifications.map((item) => (
-                <button
-                  type="button"
-                  key={item.id}
-                  className="agent-card-item"
-                  onClick={() => navigate(`/agent/verification-form`)}
-                >
-                  <div className="d-flex justify-content-between align-items-start gap-3">
-                    <div className="flex-grow-1">
-                      <div className="fw-semibold mb-1">{item.title}</div>
-                      <div className="text-muted small d-flex align-items-center gap-2">
-                        <MapPin size={14} />
-                        {item.location}
+              {recentVerifications.length === 0 ? (
+                <div className="text-muted small">No recent verifications assigned.</div>
+              ) : (
+                recentVerifications.map((item) => (
+                  <button
+                    type="button"
+                    key={item.id}
+                    className="agent-card-item"
+                    onClick={() => openVerificationStep(item)}
+                  >
+                    <div className="d-flex justify-content-between align-items-start gap-3">
+                      <div className="flex-grow-1">
+                        <div className="fw-semibold mb-1">{item.title}</div>
+                        <div className="text-muted small d-flex align-items-center gap-2">
+                          <MapPin size={14} />
+                          {item.location}
+                        </div>
                       </div>
+                      <span className={`agent-badge priority-${item.priority}`}>
+                        {item.priority.toUpperCase()}
+                      </span>
                     </div>
-                    <span className={`agent-badge priority-${item.priority}`}>
-                      {item.priority.toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="d-flex justify-content-between align-items-center mt-2">
-                    <span className={`agent-badge status-${item.status}`}>
-                      {item.status.replace("-", " ")}
-                    </span>
-                    <span className="text-muted small">
-                      Due: {new Date(item.dueDate).toLocaleDateString("en-PK")}
-                    </span>
-                  </div>
-                </button>
-              ))}
+                    <div className="d-flex justify-content-between align-items-center mt-2">
+                      <span className={`agent-badge status-${item.status}`}>
+                        {item.status.replace("-", " ")}
+                      </span>
+                      <span className="text-muted small">
+                        Due: {new Date(item.dueDate).toLocaleDateString("en-PK")}
+                      </span>
+                    </div>
+                  </button>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -141,20 +171,24 @@ export default function AgentDashboard() {
               </button>
             </div>
             <div className="d-grid gap-3">
-              {dashboard.upcomingVisits.map((visit) => (
-                <div className="agent-card-item" key={visit.id}>
-                  <div className="d-flex align-items-start gap-3">
-                    <div className="agent-chip blue">
-                      <Calendar size={18} />
-                    </div>
-                    <div>
-                      <div className="fw-semibold">{visit.property}</div>
-                      <div className="text-muted small">{visit.time}</div>
-                      <div className="text-muted small">Tenant: {visit.tenant}</div>
+              {upcomingVisits.length === 0 ? (
+                <div className="text-muted small">No upcoming visits scheduled.</div>
+              ) : (
+                upcomingVisits.map((visit) => (
+                  <div className="agent-card-item" key={visit.id}>
+                    <div className="d-flex align-items-start gap-3">
+                      <div className="agent-chip blue">
+                        <Calendar size={18} />
+                      </div>
+                      <div>
+                        <div className="fw-semibold">{visit.property}</div>
+                        <div className="text-muted small">{visit.time}</div>
+                        <div className="text-muted small">Tenant: {visit.tenant}</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -163,7 +197,7 @@ export default function AgentDashboard() {
       <div className="card agent-panel-card">
         <div className="fw-semibold mb-3">This Month&apos;s Performance</div>
         <div className="row g-3">
-          {dashboard.performance.map((item, index) => {
+          {performance.map((item, index) => {
             const Icon = performanceIcons[index] || FileText;
             return (
               <div className="col-12 col-md-4" key={item.label}>

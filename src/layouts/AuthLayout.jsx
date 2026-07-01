@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, Outlet } from "react-router-dom";
-import { Home } from "lucide-react";
 import Footer from "../components/common/Footer.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const navLinks = [
   { label: "Find Properties", to: "/" },
@@ -11,13 +11,16 @@ const navLinks = [
 ];
 
 export default function AuthLayout() {
+  const { user, roleHome } = useAuth();
+  const brandTarget = user ? roleHome[user.role] || "/" : "/";
+
   return (
     <div className="page-shell">
       <nav className="navbar navbar-expand-lg landing-nav">
         <div className="container container-wide">
-          <Link className="navbar-brand" to="/">
+          <Link className="navbar-brand" to={brandTarget}>
             <span className="brand-icon">
-              <Home size={18} />
+              <img src="/rehaish-logo.png" alt="Rehaish logo" />
             </span>
             Rehaish
           </Link>
@@ -58,7 +61,7 @@ export default function AuthLayout() {
                 <div className="auth-panel-inner">
                   <div className="auth-panel-brand">
                     <span className="brand-icon">
-                      <Home size={18} />
+                      <img src="/rehaish-logo.png" alt="Rehaish logo" />
                     </span>
                     <span className="fw-semibold">Rehaish</span>
                   </div>

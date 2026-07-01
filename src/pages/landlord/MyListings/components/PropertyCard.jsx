@@ -1,23 +1,38 @@
 import React, { useState } from "react";
-import { Bath, BedDouble, CheckCircle2, Heart, MapPin, Ruler } from "lucide-react";
+import { Bath, BedDouble, CheckCircle2, Clock, Heart, MapPin, Ruler } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { formatCurrency } from "../../../../utils/helpers.js";
 
 export default function PropertyCard({ listing }) {
   const [liked, setLiked] = useState(false);
+  const navigate = useNavigate();
+  const isVerified = listing.status === "Verified";
+  const StatusIcon = isVerified ? CheckCircle2 : Clock;
 
   return (
-    <div className="card listing-card h-100">
+    <div
+      className="card listing-card h-100 listing-card-clickable"
+      onClick={() => navigate(`/landlord/listings/${listing.id}`)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") navigate(`/landlord/listings/${listing.id}`);
+      }}
+      role="button"
+      tabIndex={0}
+    >
       <div className="listing-image">
         <img src={listing.images?.[0]} alt={listing.title} />
-        <span className="verified-badge">
-          <CheckCircle2 size={14} />
-          Verified
+        <span className={`verified-badge ${isVerified ? "verified" : "pending"}`}>
+          <StatusIcon size={14} />
+          {listing.status}
         </span>
         <span className="property-tag">{listing.tag}</span>
         <button
           type="button"
           className={`wishlist-btn ${liked ? "active" : ""}`}
-          onClick={() => setLiked((prev) => !prev)}
+          onClick={(event) => {
+            event.stopPropagation();
+            setLiked((prev) => !prev);
+          }}
           aria-label="Like property"
         >
           <Heart size={16} fill={liked ? "currentColor" : "none"} />

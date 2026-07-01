@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import DataPagination from "../../../components/common/DataPagination.jsx";
 import IntentCard from "./components/IntentCard.jsx";
 import { fetchIntents } from "../../../services/api/intents.js";
 
 export default function RentalIntent() {
   const [intents, setIntents] = useState([]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchIntents().then(setIntents);
   }, []);
+
+  const pagedIntents = intents.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div>
@@ -23,10 +28,21 @@ export default function RentalIntent() {
         </button>
       </div>
       <div className="d-grid gap-3">
-        {intents.map((intent) => (
+        {pagedIntents.map((intent) => (
           <IntentCard key={intent.id} intent={intent} />
         ))}
       </div>
+      {intents.length > 0 && (
+        <DataPagination
+          itemLabel="intents"
+          page={page}
+          pageSize={pageSize}
+          pageSizeOptions={[5, 10, 20, 50]}
+          totalItems={intents.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

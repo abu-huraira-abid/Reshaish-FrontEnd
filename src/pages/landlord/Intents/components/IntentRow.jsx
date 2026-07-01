@@ -1,4 +1,5 @@
 ﻿import React from "react";
+import { useNavigate } from "react-router-dom";
 import { formatCurrency } from "../../../../utils/helpers.js";
 
 const statusStyles = {
@@ -8,6 +9,12 @@ const statusStyles = {
 };
 
 export default function IntentRow({ intent, onAccept, onReject }) {
+  const navigate = useNavigate();
+  const tenant = intent.tenant || {};
+  const lease = intent.lease || {};
+  const payment = intent.payment || {};
+  const status = intent.status || "pending";
+
   return (
     <div className="card p-3">
       <div className="d-flex justify-content-between align-items-start">
@@ -22,33 +29,35 @@ export default function IntentRow({ intent, onAccept, onReject }) {
             <div className="text-muted small">{intent.location}</div>
           </div>
         </div>
-        <span className={`badge-pill ${statusStyles[intent.status]}`}>{intent.status.toUpperCase()}</span>
+        <span className={`badge-pill ${statusStyles[status] || "badge-info"}`}>
+          {status.toUpperCase()}
+        </span>
       </div>
 
       <div className="row g-4 mt-3">
         <div className="col-md-6">
           <div className="fw-semibold mb-2">Tenant Information</div>
           <div className="text-muted small">Name</div>
-          <div className="mb-2">{intent.tenant.name}</div>
+          <div className="mb-2">{tenant.name || "Tenant"}</div>
           <div className="text-muted small">Contact</div>
-          <div className="mb-2">{intent.tenant.phone}</div>
-          <div className="mb-2">{intent.tenant.email}</div>
+          <div className="mb-2">{tenant.phone || "Provided in onboarding"}</div>
+          <div className="mb-2">{tenant.email || "Provided in onboarding"}</div>
           <div className="text-muted small">Occupation</div>
-          <div className="mb-2">{intent.tenant.occupation}</div>
+          <div className="mb-2">{tenant.occupation || "Provided in onboarding"}</div>
           <div className="text-muted small">Monthly Income</div>
-          <div className="fw-semibold text-success">{intent.tenant.income}</div>
+          <div className="fw-semibold text-success">{tenant.income || "Provided in onboarding"}</div>
         </div>
         <div className="col-md-6">
           <div className="fw-semibold mb-2">Lease Details</div>
           <div className="text-muted small">Move-in Date</div>
-          <div className="mb-2">{intent.lease.moveIn}</div>
+          <div className="mb-2">{lease.moveIn || "To be confirmed"}</div>
           <div className="text-muted small">Lease Duration</div>
-          <div className="mb-2">{intent.lease.duration}</div>
+          <div className="mb-2">{lease.duration || "12 months"}</div>
           <div className="text-muted small">Submitted On</div>
-          <div className="mb-2">{intent.lease.submittedOn}</div>
+          <div className="mb-2">{lease.submittedOn || "Recently"}</div>
           <div className="text-muted small">Emergency Contact</div>
-          <div>{intent.lease.emergencyContact}</div>
-          <div className="text-muted small">{intent.lease.emergencyPhone}</div>
+          <div>{lease.emergencyContact || "Provided in onboarding"}</div>
+          <div className="text-muted small">{lease.emergencyPhone || "Provided in onboarding"}</div>
         </div>
       </div>
 
@@ -62,20 +71,20 @@ export default function IntentRow({ intent, onAccept, onReject }) {
         <div className="d-flex justify-content-between">
           <div>
             <div className="text-muted small">Security Deposit</div>
-            <div className="fw-semibold">{formatCurrency(intent.payment.deposit)}</div>
+            <div className="fw-semibold">{formatCurrency(payment.deposit || 0)}</div>
           </div>
           <div>
             <div className="text-muted small">First Month Rent</div>
-            <div className="fw-semibold">{formatCurrency(intent.payment.rent)}</div>
+            <div className="fw-semibold">{formatCurrency(payment.rent || 0)}</div>
           </div>
           <div>
             <div className="text-muted small">Total Initial</div>
-            <div className="fw-semibold text-danger">{formatCurrency(intent.payment.total)}</div>
+            <div className="fw-semibold text-danger">{formatCurrency(payment.total || 0)}</div>
           </div>
         </div>
       </div>
 
-      {intent.status === "pending" && (
+      {status === "pending" && (
         <div className="d-flex gap-3 mt-3">
           <button className="btn btn-outline-danger px-4" onClick={() => onReject(intent)}>
             Reject Request
@@ -86,9 +95,19 @@ export default function IntentRow({ intent, onAccept, onReject }) {
         </div>
       )}
 
-      {intent.status !== "pending" && (
-        <div className="d-flex mt-3">
-          <button className="btn btn-primary-soft px-4">View Agreement</button>
+      {status !== "pending" && (
+        <div className="d-flex align-items-center gap-3 mt-3 flex-wrap">
+          <button
+            className="btn btn-primary-soft px-4"
+            onClick={() => navigate(`/landlord/agreement-preview/${intent.listingId || intent.property}`)}
+          >
+            View Agreement
+          </button>
+          {status === "accepted" && (
+            <div className="text-muted small">
+              Accepted. Waiting for tenant signature and payment.
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -1,38 +1,113 @@
-import React, { useState } from "react";
-import { Upload } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Upload, X } from "lucide-react";
 import Stepper from "../../../../components/common/Stepper.jsx";
 import TextInput from "../../../../components/forms/TextInput.jsx";
 import SelectInput from "../../../../components/forms/SelectInput.jsx";
 
 const steps = ["Basic Info", "Pricing", "Facilities", "Uploads"]; 
+const defaultForm = {
+  title: "",
+  type: "apartment",
+  bedrooms: "",
+  bathrooms: "",
+  area: "",
+  city: "",
+  address: "",
+  rent: "",
+  deposit: "",
+  description: "",
+  ownershipProof: null,
+  photos: [],
+  existingImages: [],
+  existingOwnershipProofUrl: "",
+  deleteImageIds: [],
+  facilities: []
+};
 
-export default function ListingStepForm({ onSubmit }) {
-  const [current, setCurrent] = useState(0);
-  const [form, setForm] = useState({
-    title: "",
-    type: "Studio",
-    bedrooms: "",
-    bathrooms: "",
-    area: "",
-    address: "",
-    rent: "",
-    deposit: "",
-    facilities: []
-  });
+export default function ListingStepForm({
+  initialValues = {},
+  mode = "create",
+  onSubmit
+}) {
+  const [current, setCurrent] = useState(mode === "edit" ? steps.length - 1 : 0);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ ...defaultForm, ...initialValues });
 
   const handleChange = (event) => {
     setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }));
   };
 
+  const handleFileChange = (event) => {
+    const [file] = event.target.files || [];
+    setForm((prev) => ({ ...prev, ownershipProof: file || null }));
+  };
+
+  const handlePhotosChange = (event) => {
+    setForm((prev) => ({
+      ...prev,
+      photos: [...prev.photos, ...Array.from(event.target.files || [])]
+    }));
+    event.target.value = "";
+  };
+
+  const removeNewPhoto = (index) => {
+    setForm((prev) => ({
+      ...prev,
+      photos: prev.photos.filter((_, photoIndex) => photoIndex !== index)
+    }));
+  };
+
+  const removeExistingImage = (image) => {
+    setForm((prev) => ({
+      ...prev,
+      existingImages: prev.existingImages.filter((item) => item.id !== image.id),
+      deleteImageIds: [...prev.deleteImageIds, image.id]
+    }));
+  };
+
+  const photoPreviews = useMemo(
+    () =>
+      form.photos.map((file) => ({
+        name: file.name,
+        url: URL.createObjectURL(file)
+      })),
+    [form.photos]
+  );
+  const ownershipPreview = useMemo(() => {
+    if (!form.ownershipProof || !form.ownershipProof.type.startsWith("image/")) {
+      return null;
+    }
+    return URL.createObjectURL(form.ownershipProof);
+  }, [form.ownershipProof]);
+
+  useEffect(
+    () => () => {
+      photoPreviews.forEach((preview) => URL.revokeObjectURL(preview.url));
+    },
+    [photoPreviews]
+  );
+
+  useEffect(
+    () => () => {
+      if (ownershipPreview) URL.revokeObjectURL(ownershipPreview);
+    },
+    [ownershipPreview]
+  );
+
   const next = () => setCurrent((prev) => Math.min(prev + 1, steps.length - 1));
   const prev = () => setCurrent((prev) => Math.max(prev - 1, 0));
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    onSubmit({
-      ...form,
-      facilities: form.facilities || []
-    });
+    setSaving(true);
+    try {
+      await onSubmit({
+        ...form,
+        facilities: form.facilities || []
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const toggleFacility = (value) => {
@@ -49,8 +124,10 @@ export default function ListingStepForm({ onSubmit }) {
 
   return (
     <form onSubmit={handleSubmit} className="card p-4">
-      <h4 className="mb-3">Create New Listing</h4>
-      <Stepper steps={steps} current={current} />
+      <h4 className="mb-3">
+        {mode === "edit" ? "Update Listing" : "Create New Listing"}
+      </h4>
+      <Stepper steps={steps} current={current} onStepClick={setCurrent} />
       <div className="mt-4">
         {current === 0 && (
           <>
@@ -62,9 +139,9 @@ export default function ListingStepForm({ onSubmit }) {
               value={form.type}
               onChange={handleChange}
               options={[
-                { value: "Studio", label: "Studio" },
-                { value: "Apartment", label: "Apartment" },
-                { value: "Villa", label: "Villa" }
+                { value: "apartment", label: "Apartment" },
+                { value: "house", label: "House" },
+                { value: "room", label: "Room" }
               ]}
             />
             <div className="row g-3">
@@ -83,6 +160,7 @@ export default function ListingStepForm({ onSubmit }) {
         {current === 1 && (
           <>
             <div className="fw-semibold mb-3">Location & Pricing</div>
+            <TextInput label="City" name="city" value={form.city} onChange={handleChange} placeholder="Lahore" />
             <div className="mb-3">
               <label className="form-label">Address</label>
               <textarea
@@ -92,6 +170,17 @@ export default function ListingStepForm({ onSubmit }) {
                 value={form.address}
                 onChange={handleChange}
                 placeholder="Enter full address"
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Description</label>
+              <textarea
+                className="form-control"
+                name="description"
+                rows={3}
+                value={form.description}
+                onChange={handleChange}
+                placeholder="Add property details, nearby landmarks, and rental notes"
               />
             </div>
             <div className="row g-3">
@@ -152,7 +241,12 @@ export default function ListingStepForm({ onSubmit }) {
         {current === 3 && (
           <>
             <div className="fw-semibold mb-3">Uploads</div>
-            <label className="upload-card mb-3" htmlFor="property-photos">
+            <label
+              className={`upload-card mb-3 ${
+                form.photos.length || form.existingImages.length ? "uploaded" : ""
+              }`}
+              htmlFor="property-photos"
+            >
               <Upload size={28} />
               <div>Upload property photos</div>
             </label>
@@ -162,17 +256,88 @@ export default function ListingStepForm({ onSubmit }) {
               type="file"
               multiple
               className="d-none"
+              onChange={handlePhotosChange}
             />
-            <label className="upload-card" htmlFor="ownership-proof">
+            {(form.existingImages.length > 0 || photoPreviews.length > 0) && (
+              <div className="upload-preview-grid upload-preview-grid-large mb-3">
+                {form.existingImages.map((image) => (
+                  <div className="upload-preview-item" key={image.id}>
+                    <img src={image.url} alt="Existing property" />
+                    <button
+                      aria-label="Remove existing photo"
+                      className="upload-preview-remove"
+                      onClick={() => removeExistingImage(image)}
+                      type="button"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                ))}
+                {photoPreviews.map((preview, index) => (
+                  <div className="upload-preview-item" key={preview.url}>
+                    <img src={preview.url} alt={preview.name} />
+                    <button
+                      aria-label="Remove selected photo"
+                      className="upload-preview-remove"
+                      onClick={() => removeNewPhoto(index)}
+                      type="button"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {form.photos.length > 0 && (
+              <div className="text-muted small mb-3">
+                Selected: {form.photos.length} photo{form.photos.length === 1 ? "" : "s"}
+              </div>
+            )}
+            {mode === "edit" && form.existingImages.length > 0 && (
+              <div className="text-muted small mb-3">
+                Existing photos: {form.existingImages.length}
+              </div>
+            )}
+            <label
+              className={`upload-card ${
+                form.ownershipProof || form.existingOwnershipProofUrl ? "uploaded" : ""
+              }`}
+              htmlFor="ownership-proof"
+            >
               <Upload size={28} />
               <div>Upload ownership proof</div>
+              {ownershipPreview && (
+                <img
+                  className="upload-proof-preview"
+                  src={ownershipPreview}
+                  alt={form.ownershipProof.name}
+                />
+              )}
+              {!ownershipPreview && form.existingOwnershipProofUrl && (
+                <img
+                  className="upload-proof-preview"
+                  src={form.existingOwnershipProofUrl}
+                  alt="Existing ownership proof"
+                />
+              )}
             </label>
             <input
               id="ownership-proof"
               name="ownership"
               type="file"
               className="d-none"
+              onChange={handleFileChange}
             />
+            {form.ownershipProof && (
+              <div className="text-muted small mt-2">
+                Selected: {form.ownershipProof.name}
+              </div>
+            )}
+            {!form.ownershipProof && form.existingOwnershipProofUrl && (
+              <div className="text-muted small mt-2">
+                Existing ownership proof
+              </div>
+            )}
           </>
         )}
       </div>
@@ -185,8 +350,15 @@ export default function ListingStepForm({ onSubmit }) {
             Next
           </button>
         ) : (
-          <button className="btn btn-primary-soft px-5 py-2" type="submit">
-            Submit Listing
+          <button className="btn btn-primary-soft px-5 py-2" type="submit" disabled={saving}>
+            {saving ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" />
+                Submitting...
+              </>
+            ) : (
+              mode === "edit" ? "Update Listing" : "Submit Listing"
+            )}
           </button>
         )}
       </div>

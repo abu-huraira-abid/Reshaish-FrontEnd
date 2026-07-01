@@ -1,25 +1,43 @@
 import React from "react";
-import { Check } from "lucide-react";
+import { Check, Minus } from "lucide-react";
 
-const defaultAmenities = ["WiFi", "AC", "Parking", "Security", "Gym", "Water Supply"];
+const defaultAmenities = [
+  "WiFi",
+  "AC",
+  "Parking",
+  "Security",
+  "Gym",
+  "Water Supply",
+  "Kitchen",
+  "Laundry",
+  "Furnished",
+  "Elevator",
+  "Backup Power",
+  "CCTV"
+];
 
 export default function AmenitiesCard({ listing }) {
-  const amenities = listing.amenities && listing.amenities.length ? listing.amenities : defaultAmenities;
+  const availableAmenities = new Set(
+    (listing.amenities || []).map((amenity) => String(amenity).toLowerCase())
+  );
 
   return (
     <div className="card p-4">
       <div className="fw-semibold mb-3">Amenities</div>
       <div className="row g-2">
-        {amenities.map((amenity) => (
+        {defaultAmenities.map((amenity) => {
+          const available = availableAmenities.has(amenity.toLowerCase());
+          return (
           <div className="col-md-4" key={amenity}>
-            <div className="d-flex align-items-center gap-2 text-muted small">
-              <span className="amenity-check-icon">
-                <Check size={12} />
+            <div className={`amenity-chip ${available ? "available" : "unavailable"}`}>
+              <span>
+                {available ? <Check size={13} /> : <Minus size={13} />}
               </span>
               {amenity}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

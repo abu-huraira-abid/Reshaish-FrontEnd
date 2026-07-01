@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Home } from "lucide-react";
+import { useAuth } from "../../../../context/AuthContext.jsx";
 
 const navLinks = [
   { label: "Find Properties", href: "#featured" },
@@ -10,12 +10,15 @@ const navLinks = [
 ];
 
 export default function LandingNavbar() {
+  const { user, roleHome } = useAuth();
+  const brandTarget = user ? roleHome[user.role] || "/" : "/";
+
   return (
     <nav className="navbar navbar-expand-lg landing-nav">
       <div className="container container-wide">
-        <Link className="navbar-brand" to="/">
+        <Link className="navbar-brand" to={brandTarget}>
           <span className="brand-icon">
-            <Home size={18} />
+            <img src="/rehaish-logo.png" alt="Rehaish logo" />
           </span>
           Rehaish
         </Link>

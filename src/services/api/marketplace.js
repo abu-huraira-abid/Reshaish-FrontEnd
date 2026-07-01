@@ -55,6 +55,19 @@ export async function fetchServiceById(id) {
   return services.find((service) => service.id === id);
 }
 
+export async function createServiceOrder(payload) {
+  const { data } = await apiClient.post("/service-orders/", {
+    property: payload.property || null,
+    service_type: payload.serviceType,
+    vendor_name: payload.vendorName || "",
+    schedule: payload.schedule,
+    amount: Number(payload.amount || 0),
+    status: payload.status || "requested",
+    notes: payload.notes || ""
+  });
+  return mapServiceOrder(data);
+}
+
 export async function fetchServiceOrders() {
   const data = unwrapData(await apiClient.get("/service-orders/"));
   return data.map(mapServiceOrder);

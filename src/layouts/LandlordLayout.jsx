@@ -1,11 +1,13 @@
 ﻿import React from "react";
 import { Link } from "react-router-dom";
+import { Gauge, Home, Inbox, Settings } from "lucide-react";
 import RoleLayout from "./RoleLayout.jsx";
 
 const navItems = [
-  { label: "Dashboard", to: "/landlord", end: true },
-  { label: "My Properties", to: "/landlord/listings" },
-  { label: "Requests", to: "/landlord/intents" }
+  { label: "Dashboard", to: "/landlord", icon: Gauge, end: true },
+  { label: "My Properties", to: "/landlord/listings", icon: Home },
+  { label: "Requests", to: "/landlord/intents", icon: Inbox },
+  { label: "Settings", to: "/landlord/settings", icon: Settings }
 ];
 
 export default function LandlordLayout() {

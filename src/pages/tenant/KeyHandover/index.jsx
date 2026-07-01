@@ -9,19 +9,28 @@ import {
   Lock,
   MapPin,
   QrCode,
-  Upload,
 } from "lucide-react";
+import toast from "react-hot-toast";
+import { QRCodeCanvas } from "qrcode.react";
 import Loading from "../../../components/common/Loading.jsx";
 import { fetchListingById } from "../../../services/api/listings.js";
+import {
+  startKeyHandover,
+  verifyKeyHandoverOtp,
+} from "../../../services/api/keyHandovers.js";
 
 export default function KeyHandover() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [step, setStep] = useState("verify");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [handoverSession, setHandoverSession] = useState(null);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [success, setSuccess] = useState(false);
   const [listing, setListing] = useState(null);
   const [loadingListing, setLoadingListing] = useState(true);
+  const [handoverMessage, setHandoverMessage] = useState("");
 
   const listingId = id || "l-100";
 
@@ -44,9 +53,9 @@ export default function KeyHandover() {
     agreementNumber: "AGR-2024-001234",
     moveInDate: "1/14/2025",
     landlord: {
-      name: "Faisal Khan",
-      phone: "+92 300 1234567",
-      email: "faisal.khan@email.com",
+      name: listing?.landlordName || "Landlord",
+      phone: listing?.landlordPhone || "Phone not provided",
+      email: listing?.landlordEmail || "Email not provided",
     },
     handoverTime: new Date().toLocaleString("en-PK", {
       year: "numeric",
@@ -63,6 +72,57 @@ export default function KeyHandover() {
       const next = [...otp];
       next[index] = value;
       setOtp(next);
+      if (value && index < otp.length - 1) {
+        document.getElementById(`handover-otp-${index + 1}`)?.focus();
+      }
+    }
+  };
+
+  const handleStartHandover = async (event) => {
+    event?.preventDefault();
+    if (sendingOtp) return;
+
+    setHandoverMessage("");
+    setSendingOtp(true);
+    try {
+      const session = await startKeyHandover(listingId);
+      setHandoverSession(session);
+      if (session.completed) {
+        setSuccess(true);
+        setStep("complete");
+      } else {
+        setStep("otp");
+        toast.success("Handover OTP sent to your email.");
+      }
+    } catch (error) {
+      const message = error.message || "Unable to start key handover.";
+      setHandoverMessage(message);
+      toast.error(message);
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    const code = otp.join("");
+    if (code.length !== 6) {
+      toast.error("Enter the 6-digit OTP from your email.");
+      return;
+    }
+    setVerifyingOtp(true);
+    try {
+      await verifyKeyHandoverOtp({
+        propertyId: listingId,
+        code,
+        notes: "Tenant confirmed key handover from app.",
+      });
+      setStep("complete");
+      setSuccess(true);
+      toast.success("Key handover completed.");
+    } catch (error) {
+      toast.error(error.message || "Invalid OTP.");
+    } finally {
+      setVerifyingOtp(false);
     }
   };
 
@@ -162,7 +222,7 @@ export default function KeyHandover() {
       </div>
 
       {step === "verify" && (
-        <div className="card p-4 handover-scan-card">
+        <form className="card p-4 handover-scan-card" onSubmit={handleStartHandover}>
           <div className="text-center mb-3">
             <div className="handover-icon">
               <QrCode size={50} />
@@ -175,11 +235,17 @@ export default function KeyHandover() {
           </div>
           <div className="handover-qr-frame mb-3">
             <div className="handover-qr-inner">
-              <div className="handover-camera">
-                <Upload size={22} />
-              </div>
+              <QRCodeCanvas
+                value={
+                  handoverSession?.qr_payload ||
+                  `rehaish://key-handover?property=${listingId}`
+                }
+                size={210}
+                level="M"
+                includeMargin
+              />
               <div className="text-muted small">
-                Position QR code within the frame
+                Show this QR at the property, then verify the email OTP.
               </div>
             </div>
           </div>
@@ -189,14 +255,29 @@ export default function KeyHandover() {
             <div className="text-muted small">{handover.landlord.phone}</div>
             <div className="text-muted small">{handover.landlord.email}</div>
           </div>
+          {handoverMessage && (
+            <div className="alert alert-danger py-2 small mb-3" role="alert">
+              {handoverMessage}
+            </div>
+          )}
           <button
+            type="submit"
             className="btn btn-primary-soft w-50 mx-auto"
-            onClick={() => setStep("otp")}
+            disabled={sendingOtp}
           >
-            <QrCode size={22} className="me-2" />
-            QR Code Scanned - Enter OTP
+            {sendingOtp ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" />
+                Sending OTP...
+              </>
+            ) : (
+              <>
+                <QrCode size={22} className="me-2" />
+                Send OTP and Continue
+              </>
+            )}
           </button>
-        </div>
+        </form>
       )}
 
       {step === "otp" && (
@@ -207,14 +288,17 @@ export default function KeyHandover() {
             </div>
             <div className="fw-semibold">Enter Handover OTP</div>
             <div className="text-muted small">
-              Enter the 6-digit OTP provided by the landlord.
+              Enter the 6-digit OTP sent to your registered email
+              {handoverSession?.tenant_email ? ` (${handoverSession.tenant_email})` : ""}.
             </div>
           </div>
           <div className="d-flex justify-content-center gap-2 mb-3">
             {otp.map((digit, index) => (
               <input
                 key={index}
+                id={`handover-otp-${index}`}
                 className="form-control otp-input"
+                inputMode="numeric"
                 value={digit}
                 onChange={(event) => updateOtp(index, event.target.value)}
               />
@@ -263,10 +347,6 @@ export default function KeyHandover() {
               </label>
             </div>
           </div>
-          <div className="handover-upload mb-3">
-            <Upload size={18} className="me-2" /> Upload Property Condition
-            Photos
-          </div>
           <div className="d-flex gap-2">
             <button
               className="btn btn-light border"
@@ -276,9 +356,19 @@ export default function KeyHandover() {
             </button>
             <button
               className="btn btn-primary-soft"
-              onClick={() => setSuccess(true)}
+              disabled={verifyingOtp}
+              onClick={handleVerifyOtp}
             >
-              <Check size={16} className="me-2" /> Verify and Complete
+              {verifyingOtp ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" />
+                  Verifying...
+                </>
+              ) : (
+                <>
+                  <Check size={16} className="me-2" /> Verify and Complete
+                </>
+              )}
             </button>
           </div>
         </div>
